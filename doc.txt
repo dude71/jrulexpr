@@ -1,0 +1,16 @@
+mvn -X clean install exec:java -Dexec.mainClass="org.d71.jrule_eval.JRuleEvalTest" -Dexec.classpathScope=test
+
+scp /home/ct/.m2/repository/org/burningwave/core/12.64.2/core-12.64.2.jar root@hub:/opt/oh/conf/automation/jrule/ext-lib/
+
+scp /home/ct/.m2/repository/org/d71/jrule-eval/1.0-SNAPSHOT/jrule-eval-1.0-SNAPSHOT.jar root@hub.ha:/opt/oh/conf/automation/jrule/ext-lib/
+
+mvn install:install-file -Dfile=src/main/resources/org.openhab.automation.jrule-4.x.x-beta19.1-pre-release.jar -DgroupId=org.openhab.automation -DartifactId=jrule -Dversion=4.0.0-SNAPSHOT
+
+mvn assembly:single (target/jrule-eval...jar-with-dependencies.jar)
+
+JRuleXpr
+jrulexpr
+
+jrx="NR_KITCHEN_TEMP <= 20 && NR_HOME_PROX_A == 1"
+
+jrxv="jrx ? 20 : 30"
