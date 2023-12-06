@@ -40,27 +40,6 @@ public class JRuleXpr {
             List<Item> jrxItems = new ItemsRetriever().getItemNames();
             jrxItems.forEach(itemRuleGenerator::generate); 
             itemRuleGenerator.makeAll();
-
-            // LOGGER.info("## trying usg..");
-            // UnitSourceGenerator unitSG = UnitSourceGenerator
-            //         .create("org.openhab.automation.jrule.rules.user.generated")
-            //         .addClass(
-            //                 ClassSourceGenerator.create(
-            //                         TypeDeclarationSourceGenerator.create("MyGeneratedClazz"))
-            //                         .addModifier(Modifier.PUBLIC)
-            //                         .expands(JRule.class));
-            // LOGGER.info("## usg: " + unitSG.toString());
-            // String clazz = unitSG.make();
-            // String dir = "../conf/automation/jrule/rules"; // System.getProperty("user.dir");
-            // LOGGER.info(">> clazz: " + clazz + " >> dir: " + dir);
-            // FileSystemItem fsi = unitSG.storeToClassPath(dir);
-            // LOGGER.info("fsi: " + fsi.getAbsolutePath());
-
-            // String expr = "NR_KITCHEN_TEMP <= 20 && NR_HOME_PROX_A == 1";
-
-            // Expression expression = new Expression(expr);
-            // expression.getUsedVariables().forEach(v -> LOGGER.info("var: " + v));
-
         } catch (Exception e) {
             LOGGER.error(e.getLocalizedMessage());
         }
