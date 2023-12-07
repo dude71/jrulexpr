@@ -8,9 +8,15 @@ mvn install:install-file -Dfile=src/main/resources/org.openhab.automation.jrule-
 
 mvn assembly:single (target/jrule-eval...jar-with-dependencies.jar)
 
+# deps seperate:
+mvn dependency:copy-dependencies
+scp target/dependency/* openhab@hub.ha:/opt/oh/conf/automation/jrule/ext-lib
+
 JRuleXpr
 jrulexpr
 
 jrx="NR_KITCHEN_TEMP <= 20 && NR_HOME_PROX_A == 1"
 
 jrxv="jrx ? 20 : 30"
+jrxt=
+jrxf=

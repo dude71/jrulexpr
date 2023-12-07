@@ -35,7 +35,7 @@ public class ItemRuleGenerator {
 
     private Map<String, ClassSourceGenerator> classes = new HashMap<>();
     private ItemRegistry itemRegistry = JRuleEventHandler.get().getItemRegistry();
-    private ItemExprEvaluator itemExprEvaluator = new ItemExprEvaluator();
+    private ItemExprEvaluator itemExprEvaluator = new ItemExprEvaluator(itemRegistry);
 
     private UnitSourceGenerator unitSG = UnitSourceGenerator.create(RULE_PKG);
 
@@ -85,6 +85,8 @@ public class ItemRuleGenerator {
                 .addField(createVar(Logger.class, "LOGGER", "LoggerFactory.getLogger(" + name + ".class)")
                     .addModifier(Modifier.FINAL)
                     .addModifier(Modifier.STATIC))
+                .addField(createVar(ItemRegistry.class, "itemRegistry", "JRuleEventHandler.get().getItemRegistry()"))
+                    .addModifier(Modifier.FINAL)
                 .expands(JRule.class);
         return classSourceGenerator;
     }
@@ -133,7 +135,7 @@ public class ItemRuleGenerator {
             "try {\n" +
             "String methodName = \"" + getMethodName(item) + "\";\n" +
             "LOGGER.info(\"{} triggered by {}\", new Object[] {methodName, event.getItem().getName()});\n" +
-            "EvaluationValue ev = (new ItemExprEvaluator()).eval(\"" + item.getName() + "\");\n" +
+            "EvaluationValue ev = (new ItemExprEvaluator(itemRegistry)).eval(\"" + item.getName() + "\");\n" +
             "LOGGER.info(\"{} eval {}\", new Object[] {methodName, ev.getBooleanValue()});\n" +
             "(new ItemCommandor(\"" + item.getName() + "\")).command(ev.getBooleanValue());\n" +
             "} catch (Exception e) {\n" +

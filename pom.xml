@@ -56,9 +56,23 @@
     </dependency>
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>5.10.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>5.8.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>5.8.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -73,6 +87,7 @@
       <groupId>org.openhab.automation</groupId>
       <artifactId>jrule</artifactId>
       <version>4.0.0-SNAPSHOT</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -161,6 +176,16 @@
               </goals>
             </execution>
           </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.3.0</version>
+          <configuration>
+            <excludes>
+              <exclude>*jrule*.jar</exclude>
+            </excludes>
+          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>

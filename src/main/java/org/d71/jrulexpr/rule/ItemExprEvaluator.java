@@ -14,7 +14,7 @@ import com.ezylang.evalex.data.conversion.DefaultEvaluationValueConverter;
 import com.ezylang.evalex.data.conversion.EvaluationValueConverterIfc;
 
 public class ItemExprEvaluator {
-    private ItemRegistry itemRegistry = JRuleEventHandler.get().getItemRegistry();
+    private ItemRegistry itemRegistry = null;
 
     private EvaluationValueConverterIfc valueConverter = new EvaluationValueConverterIfc() {
         private EvaluationValueConverterIfc defaultConverter = new DefaultEvaluationValueConverter();
@@ -28,7 +28,8 @@ public class ItemExprEvaluator {
         }
     };
 
-    public ItemExprEvaluator() {
+    public ItemExprEvaluator(ItemRegistry itemRegistry) {
+        this.itemRegistry = itemRegistry;
     }
 
     public EvaluationValue eval(String itemName) throws Exception {
