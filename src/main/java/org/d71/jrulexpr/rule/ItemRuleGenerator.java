@@ -15,8 +15,10 @@ import org.burningwave.core.classes.VariableSourceGenerator;
 import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
 import org.openhab.automation.jrule.rules.JRule;
 import org.openhab.automation.jrule.rules.JRuleName;
+import org.openhab.automation.jrule.rules.JRuleWhenCronTrigger;
 import org.openhab.automation.jrule.rules.JRuleWhenItemChange;
-import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
+import org.openhab.automation.jrule.rules.event.JRuleEvent;
+import org.openhab.core.events.Event;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemRegistry;
 import org.slf4j.Logger;
@@ -29,9 +31,10 @@ public class ItemRuleGenerator {
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemRuleGenerator.class);
 
     private static final String RULE_PKG = "org.openhab.automation.jrule.rules.user.generated";
-    //private static final String RULE_PKG = "org.openhab.automation.jrule.generated.jrx";
+    // private static final String RULE_PKG =
+    // "org.openhab.automation.jrule.generated.jrx";
     private static final String RULE_PATH = "../conf/automation/jrule/rules";
-    //private static final String RULE_PATH = "../conf/automation/jrule/gen";
+    // private static final String RULE_PATH = "../conf/automation/jrule/gen";
 
     private Map<String, ClassSourceGenerator> classes = new HashMap<>();
     private ItemRegistry itemRegistry = JRuleEventHandler.get().getItemRegistry();
@@ -83,10 +86,10 @@ public class ItemRuleGenerator {
                 .addOuterCodeLine("import " + ItemCommandor.class.getName() + ";")
                 .addOuterCodeLine("import " + EvaluationValue.class.getName() + ";\n")
                 .addField(createVar(Logger.class, "LOGGER", "LoggerFactory.getLogger(" + name + ".class)")
-                    .addModifier(Modifier.FINAL)
-                    .addModifier(Modifier.STATIC))
+                        .addModifier(Modifier.FINAL)
+                        .addModifier(Modifier.STATIC))
                 .addField(createVar(ItemRegistry.class, "itemRegistry", "JRuleEventHandler.get().getItemRegistry()"))
-                    .addModifier(Modifier.FINAL)
+                .addModifier(Modifier.FINAL)
                 .expands(JRule.class);
         return classSourceGenerator;
     }
@@ -100,15 +103,18 @@ public class ItemRuleGenerator {
                         .create(JRuleName.class)
                         .addParameter(VariableSourceGenerator.create("\"" + methodName + "\"")))
                 .addParameter(VariableSourceGenerator
-                    .create(TypeDeclarationSourceGenerator
-                        .create(JRuleItemEvent.class), "event"))
+                        .create(TypeDeclarationSourceGenerator
+                                .create(JRuleEvent.class), "event"))
                 .setReturnType(void.class);
     }
 
     private void createMethodAnnotations(FunctionSourceGenerator method, Item item) throws Exception {
         String jrx = getJrx(item);
         LOGGER.info("Creating method annotations for " + jrx);
-        Expression expression = new Expression(jrx);
+        Expression expression = itemExprEvaluator.getExpression(jrx);
+
+        expression.getUndefinedVariables().forEach(v -> LOGGER.info("var: " + v));
+
         List<Item> items = expression.getUndefinedVariables().stream()
                 .map(v -> itemRegistry.get(v)).toList();
 
@@ -116,6 +122,14 @@ public class ItemRuleGenerator {
                 AnnotationSourceGenerator
                         .create(JRuleWhenItemChange.class)
                         .addParameter("item", VariableSourceGenerator.create("\"" + i.getName() + "\""))));
+
+        expression.getAllASTNodes().forEach(n -> LOGGER.trace("node: " + n.getToken()));
+
+        if (itemExprEvaluator.getUdFunctions(expression).contains("HOUR")) {
+            method.addAnnotation(AnnotationSourceGenerator
+                .create(JRuleWhenCronTrigger.class)
+                .addParameter("cron", VariableSourceGenerator.create("\"0 0 * * * *\"")));
+        }
     }
 
     private VariableSourceGenerator createVar(Class<?> clz, String name, String valAsStr) {
@@ -127,20 +141,21 @@ public class ItemRuleGenerator {
     }
 
     private String getJrx(Item item) {
-        return itemExprEvaluator.getJrx(item);
+        return JrxParser.getJrx(item).orElse(null);
     }
 
     private void createMethodBody(FunctionSourceGenerator method, Item item) {
         method.addBodyCode(
-            "try {\n" +
-            "String methodName = \"" + getMethodName(item) + "\";\n" +
-            "LOGGER.info(\"{} triggered by {}\", new Object[] {methodName, event.getItem().getName()});\n" +
-            "EvaluationValue ev = (new ItemExprEvaluator(itemRegistry)).eval(\"" + item.getName() + "\");\n" +
-            "LOGGER.info(\"{} eval {}\", new Object[] {methodName, ev.getBooleanValue()});\n" +
-            "(new ItemCommandor(\"" + item.getName() + "\")).command(ev.getBooleanValue());\n" +
-            "} catch (Exception e) {\n" +
-            "LOGGER.info(\"ERROR: \" + e.getLocalizedMessage());\n" +
-            "}"
-        ).addThrowable(TypeDeclarationSourceGenerator.create(Exception.class));
+                "try {\n" +
+                        "String methodName = \"" + getMethodName(item) + "\";\n" +
+                        "LOGGER.info(\"{} triggered by {}\", new Object[] {methodName, event.getSource()});\n" +
+                        "EvaluationValue ev = (new ItemExprEvaluator(itemRegistry)).eval(\"" + item.getName() + "\");\n"
+                        +
+                        "LOGGER.info(\"{} eval {}\", new Object[] {methodName, ev.getBooleanValue()});\n" +
+                        "(new ItemCommandor(\"" + item.getName() + "\")).command(ev.getBooleanValue());\n" +
+                        "} catch (Exception e) {\n" +
+                        "LOGGER.info(\"ERROR: \" + e.getLocalizedMessage());\n" +
+                        "}")
+                .addThrowable(TypeDeclarationSourceGenerator.create(Exception.class));
     }
 }

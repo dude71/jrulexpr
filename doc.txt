@@ -15,8 +15,18 @@ scp target/dependency/* openhab@hub.ha:/opt/oh/conf/automation/jrule/ext-lib
 JRuleXpr
 jrulexpr
 
-jrx="NR_KITCHEN_TEMP <= 20 && NR_HOME_PROX_A == 1"
+jrx="NR_IS_DARK == 1"
 
-jrxv="jrx ? 20 : 30"
-jrxt=
-jrxf=
+jrxt=IF(NR_KITCHEN_MOTION, 80, 40)
+jrxf=0 (optional, 0 default for Dimmer)
+
+# Dimmer Kitchen
+
+NR_LIGHTING_NEED
+
+jrx="NR_IS_DARK == 1 && (HOUR() < 10 || HOUR() > 14) && NOT(NR_IN_LIVINGROOM == 0 && HOUR() == 23)"
+
+DM_KITCHEN_DIMMER
+
+jrx="NR_LIGHTING_NEED || (NR_IS_DARK && NR_FRONTGARDEN_MOTION)"
+jrvt="IF(NR_KITCHEN_MOTION || NR_FRONTGARDEN_MOTION, 90, IF(HOUR() < 20, 85, 90 - HOUR()))
