@@ -91,11 +91,11 @@ public class ItemExprEvaluator {
 
         Expression ezyExpr = getExpression(expression);
 
-        ezyExpr.getUndefinedVariables().forEach(v -> LOGGER.debug("var: " + v));
+        ezyExpr.getUndefinedVariables().forEach(v -> LOGGER.trace("var: " + v));
 
         List<Item> items = ezyExpr.getUndefinedVariables().stream().map(v -> itemRegistry.get(v)).toList();
 
-        items.forEach(i -> LOGGER.debug("itm: " + i.getName() + " " + i.getState() + " " + i.getType() + " " + i.getClass()));
+        items.forEach(i -> LOGGER.trace("itm: " + i.getName() + " " + i.getState() + " " + i.getType() + " " + i.getClass()));
 
         items.forEach(i -> ezyExpr.with(i.getName(), i.getState()));
         return ezyExpr.evaluate();

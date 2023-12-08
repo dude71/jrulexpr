@@ -22,7 +22,7 @@ public class ItemCommandor {
     }
 
     public void command(boolean eval) {
-        LOGGER.info("Command for {} item with eval {}", new Object[] {item.getType(), eval});
+        LOGGER.debug("Command for {} item with eval {}", new Object[] {item.getType(), eval});
         if (item instanceof DimmerItem) {
             ((DimmerItem)item).send(PercentType.valueOf(eval ? "50" : "0"));
         }

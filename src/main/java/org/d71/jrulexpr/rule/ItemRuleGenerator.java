@@ -1,31 +1,24 @@
 package org.d71.jrulexpr.rule;
 
-import java.util.Map;
-import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.List;
-
+import com.ezylang.evalex.Expression;
+import com.ezylang.evalex.data.EvaluationValue;
 import org.apache.commons.text.CaseUtils;
-import org.burningwave.core.classes.AnnotationSourceGenerator;
-import org.burningwave.core.classes.ClassSourceGenerator;
-import org.burningwave.core.classes.FunctionSourceGenerator;
-import org.burningwave.core.classes.TypeDeclarationSourceGenerator;
-import org.burningwave.core.classes.UnitSourceGenerator;
-import org.burningwave.core.classes.VariableSourceGenerator;
+import org.burningwave.core.classes.*;
+import org.openhab.automation.jrule.rules.event.JRuleEvent;
 import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
 import org.openhab.automation.jrule.rules.JRule;
 import org.openhab.automation.jrule.rules.JRuleName;
 import org.openhab.automation.jrule.rules.JRuleWhenCronTrigger;
 import org.openhab.automation.jrule.rules.JRuleWhenItemChange;
-import org.openhab.automation.jrule.rules.event.JRuleEvent;
-import org.openhab.core.events.Event;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ezylang.evalex.Expression;
-import com.ezylang.evalex.data.EvaluationValue;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ItemRuleGenerator {
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemRuleGenerator.class);
@@ -78,13 +71,14 @@ public class ItemRuleGenerator {
         ClassSourceGenerator classSourceGenerator = ClassSourceGenerator
                 .create(TypeDeclarationSourceGenerator.create(name))
                 .addModifier(Modifier.PUBLIC)
-                .addOuterCodeLine("import java.util.List;")
-                .addOuterCodeLine("import org.openhab.core.items.Item;")
-                .addOuterCodeLine("import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;")
-                .addOuterCodeLine("import " + LoggerFactory.class.getName() + ";")
-                .addOuterCodeLine("import " + ItemExprEvaluator.class.getName() + ";")
-                .addOuterCodeLine("import " + ItemCommandor.class.getName() + ";")
-                .addOuterCodeLine("import " + EvaluationValue.class.getName() + ";\n")
+                .addOuterCodeLine(createImport(List.class))
+                .addOuterCodeLine(createImport(RuleUtils.class))
+                .addOuterCodeLine(createImport(Item.class))
+                .addOuterCodeLine(createImport(JRuleEventHandler.class))
+                .addOuterCodeLine(createImport(LoggerFactory.class))
+                .addOuterCodeLine(createImport(ItemExprEvaluator.class))
+                .addOuterCodeLine(createImport(ItemCommandor.class))
+                .addOuterCodeLine(createImport(EvaluationValue.class) + ";\n")
                 .addField(createVar(Logger.class, "LOGGER", "LoggerFactory.getLogger(" + name + ".class)")
                         .addModifier(Modifier.FINAL)
                         .addModifier(Modifier.STATIC))
@@ -92,6 +86,10 @@ public class ItemRuleGenerator {
                 .addModifier(Modifier.FINAL)
                 .expands(JRule.class);
         return classSourceGenerator;
+    }
+
+    private String createImport(Class<?> clz) {
+        return "import " + clz.getName() + ";";
     }
 
     private FunctionSourceGenerator createMethod(ClassSourceGenerator classSG, Item item) {
@@ -127,8 +125,8 @@ public class ItemRuleGenerator {
 
         if (itemExprEvaluator.getUdFunctions(expression).contains("HOUR")) {
             method.addAnnotation(AnnotationSourceGenerator
-                .create(JRuleWhenCronTrigger.class)
-                .addParameter("cron", VariableSourceGenerator.create("\"0 0 * * * *\"")));
+                    .create(JRuleWhenCronTrigger.class)
+                    .addParameter("cron", VariableSourceGenerator.create("\"0 0 * * * *\"")));
         }
     }
 
@@ -146,16 +144,16 @@ public class ItemRuleGenerator {
 
     private void createMethodBody(FunctionSourceGenerator method, Item item) {
         method.addBodyCode(
-                "try {\n" +
-                        "String methodName = \"" + getMethodName(item) + "\";\n" +
-                        "LOGGER.info(\"{} triggered by {}\", new Object[] {methodName, event.getSource()});\n" +
-                        "EvaluationValue ev = (new ItemExprEvaluator(itemRegistry)).eval(\"" + item.getName() + "\");\n"
-                        +
-                        "LOGGER.info(\"{} eval {}\", new Object[] {methodName, ev.getBooleanValue()});\n" +
-                        "(new ItemCommandor(\"" + item.getName() + "\")).command(ev.getBooleanValue());\n" +
-                        "} catch (Exception e) {\n" +
-                        "LOGGER.info(\"ERROR: \" + e.getLocalizedMessage());\n" +
-                        "}")
+                        "try {\n" +
+                                "String methodName = \"" + getMethodName(item) + "\";\n" +
+                                "LOGGER.info(\"{} triggered by {}\", new Object[] {methodName, RuleUtils.eventInfo(event)});\n" +
+                                "EvaluationValue ev = (new ItemExprEvaluator(itemRegistry)).eval(\"" + item.getName() + "\");\n"
+                                +
+                                "LOGGER.info(\"{} eval {}\", new Object[] {methodName, ev.getBooleanValue()});\n" +
+                                "(new ItemCommandor(\"" + item.getName() + "\")).command(ev.getBooleanValue());\n" +
+                                "} catch (Exception e) {\n" +
+                                "LOGGER.info(\"ERROR: \" + e.getLocalizedMessage());\n" +
+                                "}")
                 .addThrowable(TypeDeclarationSourceGenerator.create(Exception.class));
     }
 }
