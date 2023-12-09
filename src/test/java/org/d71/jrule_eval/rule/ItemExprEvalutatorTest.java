@@ -1,8 +1,5 @@
 package org.d71.jrule_eval.rule;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -22,6 +19,9 @@ import org.openhab.core.library.types.DecimalType;
 
 import com.ezylang.evalex.data.EvaluationValue;
 import com.ezylang.evalex.data.EvaluationValue.DataType;
+import org.openhab.core.library.types.OnOffType;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ItemExprEvalutatorTest {
@@ -56,11 +56,23 @@ public class ItemExprEvalutatorTest {
         assertTrue(eval.getBooleanValue());
     }
 
+    @Test
+    public void switchItem() throws Exception {
+        Item itm = getMockedItem("SW_ITEM", CoreItemFactory.SWITCH, "ON", "jrx=SW_ITEM==\"ON\"");
+        EvaluationValue eval = evaluator.eval(itm.getName());
+        assertEquals("ON", eval.getStringValue());
+    }
+
     private Item getMockedItem(String name, String type, String value, String... tags) throws Exception {
         Item itm = Mockito.mock(Item.class);
         Mockito.lenient().when(itm.getType()).thenReturn(type);
         Mockito.lenient().when(itm.getName()).thenReturn(name);
-        Mockito.lenient().when(itm.getState()).thenReturn(DecimalType.valueOf(value));
+
+        if (CoreItemFactory.NUMBER.equals(type))
+            Mockito.lenient().when(itm.getState()).thenReturn(DecimalType.valueOf(value));
+        else if (CoreItemFactory.SWITCH.equals(type))
+            Mockito.lenient().when(itm.getState()).thenReturn(OnOffType.valueOf(value));
+
         Mockito.lenient().when(itm.getTags()).thenReturn(new HashSet<>(Arrays.asList(tags)));
         Mockito.lenient().when(itemRegistry.getItem(name)).thenReturn(itm);
         Mockito.lenient().when(itemRegistry.get(name)).thenReturn(itm);

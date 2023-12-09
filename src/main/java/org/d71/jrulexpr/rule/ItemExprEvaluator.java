@@ -15,6 +15,7 @@ import org.openhab.core.library.CoreItemFactory;
 import org.openhab.core.library.items.DimmerItem;
 import org.openhab.core.library.items.NumberItem;
 import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
@@ -39,9 +40,20 @@ public class ItemExprEvaluator {
 
         @Override
         public EvaluationValue convertObject(Object object, ExpressionConfiguration configuration) {
-            EvaluationValue val = object instanceof DecimalType
-                    ? (EvaluationValue.numberValue(((DecimalType) object).toBigDecimal()))
-                    : defaultConverter.convertObject(object, configuration);
+            EvaluationValue val = null;
+            LOGGER.debug(object.toString());
+
+            if (object instanceof DecimalType)
+                val = EvaluationValue.numberValue(
+                        ((DecimalType) object).toBigDecimal()
+                );
+            else if (object instanceof OnOffType)
+                val = EvaluationValue.stringValue(
+                        ((OnOffType) object).toString()
+                );
+            else
+                val = defaultConverter.convertObject(object, configuration);
+
             return val;
         }
     };
@@ -107,6 +119,8 @@ public class ItemExprEvaluator {
             ev = EvaluationValue.numberValue(BigDecimal.valueOf(result ? 90 : 0));
         } else if (CoreItemFactory.NUMBER.equals(item.getType())) {
             ev = EvaluationValue.numberValue(BigDecimal.valueOf(result ? 1 : 0));
+        } else if (CoreItemFactory.SWITCH.equals(item.getType())) {
+            ev = EvaluationValue.stringValue(result ? "ON" : "OFF");
         }
 
         return ev;

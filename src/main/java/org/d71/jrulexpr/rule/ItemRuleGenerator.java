@@ -116,6 +116,8 @@ public class ItemRuleGenerator {
         List<Item> items = expression.getUndefinedVariables().stream()
                 .map(v -> itemRegistry.get(v)).toList();
 
+        items.forEach(i -> LOGGER.debug("itm: " + i.getName()));
+
         items.forEach(i -> method.addAnnotation(
                 AnnotationSourceGenerator
                         .create(JRuleWhenItemChange.class)
@@ -149,8 +151,8 @@ public class ItemRuleGenerator {
                                 "LOGGER.info(\"{} triggered by {}\", new Object[] {methodName, RuleUtils.eventInfo(event)});\n" +
                                 "EvaluationValue ev = (new ItemExprEvaluator(itemRegistry)).eval(\"" + item.getName() + "\");\n"
                                 +
-                                "LOGGER.info(\"{} eval {}\", new Object[] {methodName, ev.getBooleanValue()});\n" +
-                                "(new ItemCommandor(\"" + item.getName() + "\")).command(ev.getBooleanValue());\n" +
+                                "LOGGER.info(\"{} eval {}\", new Object[] {methodName, ev});\n" +
+                                "(new ItemCommandor(\"" + item.getName() + "\")).command(ev.getValue());\n" +
                                 "} catch (Exception e) {\n" +
                                 "LOGGER.info(\"ERROR: \" + e.getLocalizedMessage());\n" +
                                 "}")
