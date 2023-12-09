@@ -23,25 +23,17 @@ public class ItemCommandor {
         this.item = JRuleEventHandler.get().getItemRegistry().getItem(itemName);
     }
 
-    public void command(boolean eval) {
-        LOGGER.debug("Command for {} item with eval {}", new Object[] {item.getType(), eval});
+    public void command(Object value) {
+        LOGGER.debug("Command for {} item with eval {}", new Object[] {item.getType(), value});
+        String val = String.valueOf(value);
         if (item instanceof DimmerItem) {
-            ((DimmerItem)item).send(PercentType.valueOf(eval ? "50" : "0"));
+            ((DimmerItem)item).send(PercentType.valueOf(val));
         } else if (item instanceof NumberItem) {
-            ((NumberItem)item).send(DecimalType.valueOf(eval ? "1" : "0"));
+            ((NumberItem)item).send(DecimalType.valueOf(val));
         } else if (item instanceof SwitchItem) {
-            ((SwitchItem)item).send(eval ? OnOffType.ON : OnOffType.OFF);
-        }
-
-    }
-
-    public void command(BigDecimal value) { 
-    }
-
-    public void command(String val) {
-        LOGGER.info("Command for {} item with val {}", new Object[] {item.getType(), val});
-        if (item instanceof SwitchItem) {
             ((SwitchItem)item).send(val.equals("ON") ? OnOffType.ON : OnOffType.OFF);
         }
+
     }
+
 }
