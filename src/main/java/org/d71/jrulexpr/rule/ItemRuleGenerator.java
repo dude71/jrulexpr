@@ -10,6 +10,7 @@ import org.openhab.automation.jrule.rules.JRule;
 import org.openhab.automation.jrule.rules.JRuleName;
 import org.openhab.automation.jrule.rules.JRuleWhenCronTrigger;
 import org.openhab.automation.jrule.rules.JRuleWhenItemChange;
+import org.openhab.core.events.Event;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemRegistry;
 import org.slf4j.Logger;
@@ -19,6 +20,8 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ItemRuleGenerator {
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemRuleGenerator.class);
@@ -72,10 +75,11 @@ public class ItemRuleGenerator {
                 .create(TypeDeclarationSourceGenerator.create(name))
                 .addModifier(Modifier.PUBLIC)
                 .addOuterCodeLine(createImport(List.class))
-                .addOuterCodeLine(createImport(RuleUtils.class))
+                .addOuterCodeLine(createImport(RuleUtil.class))
                 .addOuterCodeLine(createImport(Item.class))
                 .addOuterCodeLine(createImport(JRuleEventHandler.class))
                 .addOuterCodeLine(createImport(LoggerFactory.class))
+                .addOuterCodeLine(createImport(ItemRuleGenerator.class))
                 .addOuterCodeLine(createImport(ItemExprEvaluator.class))
                 .addOuterCodeLine(createImport(ItemCommandor.class))
                 .addOuterCodeLine(createImport(EvaluationValue.class) + ";\n")
@@ -94,7 +98,7 @@ public class ItemRuleGenerator {
 
     private FunctionSourceGenerator createMethod(ClassSourceGenerator classSG, Item item) {
         LOGGER.info("Creating JRule method for: " + item.getName());
-        String methodName = getMethodName(item);
+        String methodName = RuleUtil.getMethodName(item);
         return FunctionSourceGenerator.create(methodName)
                 .addModifier(Modifier.PUBLIC)
                 .addAnnotation(AnnotationSourceGenerator
@@ -109,12 +113,11 @@ public class ItemRuleGenerator {
     private void createMethodAnnotations(FunctionSourceGenerator method, Item item) throws Exception {
         String jrx = getJrx(item);
         LOGGER.info("Creating method annotations for " + jrx);
-        Expression expression = itemExprEvaluator.getExpression(jrx);
+        Expression expression = itemExprEvaluator.getExpression(jrx, item);
 
         expression.getUndefinedVariables().forEach(v -> LOGGER.info("var: " + v));
 
-        List<Item> items = expression.getUndefinedVariables().stream()
-                .map(v -> itemRegistry.get(v)).toList();
+        Set<Item> items = JrxParser.getXprItems(item, itemExprEvaluator, itemRegistry);
 
         items.forEach(i -> LOGGER.debug("itm: " + i.getName()));
 
@@ -125,19 +128,18 @@ public class ItemRuleGenerator {
 
         expression.getAllASTNodes().forEach(n -> LOGGER.trace("node: " + n.getToken()));
 
-        if (itemExprEvaluator.getUdFunctions(expression).contains("HOUR")) {
+        Set<String> udFunctions = itemExprEvaluator.getUdFunctions(expression);
+
+        if (udFunctions.contains("HOUR")) {
             method.addAnnotation(AnnotationSourceGenerator
                     .create(JRuleWhenCronTrigger.class)
                     .addParameter("cron", VariableSourceGenerator.create("\"0 0 * * * *\"")));
         }
+
     }
 
     private VariableSourceGenerator createVar(Class<?> clz, String name, String valAsStr) {
         return VariableSourceGenerator.create(clz, name).setValue(valAsStr).addModifier(Modifier.PRIVATE);
-    }
-
-    private String getMethodName(Item item) {
-        return CaseUtils.toCamelCase(item.getName(), false, '_', '-', ' ');
     }
 
     private String getJrx(Item item) {
@@ -145,17 +147,26 @@ public class ItemRuleGenerator {
     }
 
     private void createMethodBody(FunctionSourceGenerator method, Item item) {
-        method.addBodyCode(
-                        "try {\n" +
-                                "String methodName = \"" + getMethodName(item) + "\";\n" +
-                                "LOGGER.info(\"{} triggered by {}\", new Object[] {methodName, RuleUtils.eventInfo(event)});\n" +
-                                "EvaluationValue ev = (new ItemExprEvaluator(itemRegistry)).eval(\"" + item.getName() + "\");\n"
-                                +
-                                "LOGGER.info(\"{} eval {}\", new Object[] {methodName, ev});\n" +
-                                "(new ItemCommandor(\"" + item.getName() + "\")).command(ev.getValue());\n" +
-                                "} catch (Exception e) {\n" +
-                                "LOGGER.info(\"ERROR: \" + e.getLocalizedMessage());\n" +
-                                "}")
+        method.addBodyCode("ItemRuleGenerator.callRuleMethod(\"" + RuleUtil.getMethodName(item) + "\", \"" + item.getName() + "\", event);")
                 .addThrowable(TypeDeclarationSourceGenerator.create(Exception.class));
+    }
+
+    public static void callRuleMethod(String methodName, String itemName, JRuleEvent event) {
+        try {
+            LOGGER.info(">> {} triggered by {}", new Object[] {methodName, RuleUtil.eventInfo(event)});
+            
+            ItemRegistry itemRegistry = JRuleEventHandler.get().getItemRegistry();
+            ItemExprEvaluator evaluator = new ItemExprEvaluator(itemRegistry);
+            if (evaluator.evalPre(itemName)) {
+                LOGGER.debug("Pre condition met");
+                EvaluationValue ev = evaluator.evalState(itemName);
+                LOGGER.info("{} eval {}", new Object[] {methodName, ev});
+                (new ItemCommandor(itemName)).command(ev.getValue());
+            } else {
+                LOGGER.info("{} pre condition not met", new Object[] {methodName});
+            }
+        } catch (Exception e) {
+            LOGGER.error("ERROR: ", e);
+        }
     }
 }

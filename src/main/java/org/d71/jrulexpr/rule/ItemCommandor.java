@@ -25,13 +25,12 @@ public class ItemCommandor {
 
     public void command(Object value) {
         LOGGER.debug("Command for {} item with eval {}", new Object[] {item.getType(), value});
-        String val = String.valueOf(value);
         if (item instanceof DimmerItem) {
-            ((DimmerItem)item).send(PercentType.valueOf(val));
+            ((DimmerItem)item).send(PercentType.valueOf(String.valueOf(((BigDecimal)value).intValue())));
         } else if (item instanceof NumberItem) {
-            ((NumberItem)item).send(DecimalType.valueOf(val));
+            ((NumberItem)item).send(DecimalType.valueOf(String.valueOf(value)));
         } else if (item instanceof SwitchItem) {
-            ((SwitchItem)item).send(val.equals("ON") ? OnOffType.ON : OnOffType.OFF);
+            ((SwitchItem)item).send(String.valueOf(value).equals("ON") ? OnOffType.ON : OnOffType.OFF);
         }
 
     }

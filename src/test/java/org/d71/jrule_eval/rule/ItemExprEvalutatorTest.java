@@ -43,7 +43,7 @@ public class ItemExprEvalutatorTest {
             "jrx=NR_HOME_PROX_C == 1 && NR_KITCHEN_MOTION == 1",
             "jrxt=IF(IF(NR_KITCHEN_MOTION == 1, NR_KITCHEN_MOTION, NR_HOME_PROX_C), 75, 65)"
             );
-        EvaluationValue eval = evaluator.eval(name);
+        EvaluationValue eval = evaluator.evalState(name);
         assertEquals(DataType.NUMBER, eval.getDataType());
         assertEquals("75", eval.getStringValue());
     }
@@ -52,14 +52,14 @@ public class ItemExprEvalutatorTest {
     public void hourFunction() throws Exception {
         String h = "" + LocalDateTime.now().getHour();
         Item itm = getMockedItem("NR_HOUR", CoreItemFactory.NUMBER, "0", "jrx=HOUR() == " + h);
-        EvaluationValue eval = evaluator.eval(itm.getName());
+        EvaluationValue eval = evaluator.evalState(itm.getName());
         assertTrue(eval.getBooleanValue());
     }
 
     @Test
     public void switchItem() throws Exception {
         Item itm = getMockedItem("SW_ITEM", CoreItemFactory.SWITCH, "ON", "jrx=SW_ITEM==\"ON\"");
-        EvaluationValue eval = evaluator.eval(itm.getName());
+        EvaluationValue eval = evaluator.evalState(itm.getName());
         assertEquals("ON", eval.getStringValue());
     }
 

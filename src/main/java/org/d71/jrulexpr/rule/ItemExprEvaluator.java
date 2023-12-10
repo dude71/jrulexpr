@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.d71.jrulexpr.rule.functions.HourFunction;
+import org.d71.jrulexpr.rule.functions.LockFunction;
 import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemRegistry;
@@ -19,6 +20,7 @@ import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
+import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +53,9 @@ public class ItemExprEvaluator {
                 val = EvaluationValue.stringValue(
                         ((OnOffType) object).toString()
                 );
+            else if (object instanceof UnDefType) {
+                val = EvaluationValue.nullValue();
+            }
             else
                 val = defaultConverter.convertObject(object, configuration);
 
@@ -62,11 +67,17 @@ public class ItemExprEvaluator {
         this.itemRegistry = itemRegistry;
     }
 
-    public EvaluationValue eval(String itemName) throws Exception {
+    public boolean evalPre(String itemName) throws Exception {
+        Item item = itemRegistry.getItem(itemName);
+        String jrxp = JrxParser.getJrxp(item).orElse(null);
+        return jrxp == null ? true : evalXpr(jrxp, item).getBooleanValue();
+    }
+
+    public EvaluationValue evalState(String itemName) throws Exception {
         Item item = itemRegistry.getItem(itemName);
         String jrx = JrxParser.getJrx(item).orElseThrow(() -> new IllegalStateException("jrx tag must be present!"));
         
-        EvaluationValue ev = evalXpr(jrx);
+        EvaluationValue ev = evalXpr(jrx, item);
         if (!ev.isBooleanValue()) {
             throw new IllegalStateException("jrx must evaluate to boolean!");
         }
@@ -74,16 +85,19 @@ public class ItemExprEvaluator {
 
         Optional<String> jrxv = ev.getBooleanValue() ? JrxParser.getJrxt(item) : JrxParser.getJrxf(item);
 
-        return jrxv.isPresent() ? evalXpr(jrxv.get()) : getDefault(ev.getBooleanValue(), item);
+        return jrxv.isPresent() ? evalXpr(jrxv.get(), item) : getDefault(ev.getBooleanValue(), item);
     }
 
-    protected Expression getExpression(String expression) {
+    protected Expression getExpression(String expression, Item item) {
         LOGGER.info("EvalEx..");
         return new Expression(expression,
                 ExpressionConfiguration.builder()
                         .evaluationValueConverter(valueConverter)
                         .build()
-                        .withAdditionalFunctions(Map.entry("HOUR", new HourFunction())));
+                        .withAdditionalFunctions(
+                            Map.entry("HOUR", new HourFunction()),
+                            Map.entry("LOCK", new LockFunction(RuleUtil.getMethodName(item)))
+                        ));
     }
 
     protected Set<String> getUdFunctions(Expression expression) throws Exception {
@@ -95,13 +109,14 @@ public class ItemExprEvaluator {
     }
 
     private boolean isUd(String name) {
-        return "HOUR".equals(name);
+        return "HOUR".equals(name) ||
+            "LOCK".equals(name);
     }
 
-    private EvaluationValue evalXpr(String expression) throws Exception {
+    private EvaluationValue evalXpr(String expression, Item item) throws Exception {
         LOGGER.debug("eval: " + expression);
 
-        Expression ezyExpr = getExpression(expression);
+        Expression ezyExpr = getExpression(expression, item);
 
         ezyExpr.getUndefinedVariables().forEach(v -> LOGGER.trace("var: " + v));
 
