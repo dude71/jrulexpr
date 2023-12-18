@@ -1,27 +1,33 @@
 package org.d71.jrulexpr.rule;
 
-import com.ezylang.evalex.Expression;
-import com.ezylang.evalex.data.EvaluationValue;
-import org.apache.commons.text.CaseUtils;
-import org.burningwave.core.classes.*;
-import org.openhab.automation.jrule.rules.event.JRuleEvent;
-import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
-import org.openhab.automation.jrule.rules.JRule;
-import org.openhab.automation.jrule.rules.JRuleName;
-import org.openhab.automation.jrule.rules.JRuleWhenCronTrigger;
-import org.openhab.automation.jrule.rules.JRuleWhenItemChange;
-import org.openhab.core.events.Event;
-import org.openhab.core.items.Item;
-import org.openhab.core.items.ItemRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.d71.jrulexpr.expression.ItemExpressionType.JRX;
+import static org.d71.jrulexpr.expression.ItemExpressionType.JRXP;
 
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import org.burningwave.core.classes.AnnotationSourceGenerator;
+import org.burningwave.core.classes.ClassSourceGenerator;
+import org.burningwave.core.classes.FunctionSourceGenerator;
+import org.burningwave.core.classes.TypeDeclarationSourceGenerator;
+import org.burningwave.core.classes.UnitSourceGenerator;
+import org.burningwave.core.classes.VariableSourceGenerator;
+import org.d71.jrulexpr.expression.IItemExpression;
+import org.d71.jrulexpr.expression.ItemExpressionFactory;
+import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
+import org.openhab.automation.jrule.rules.JRuleName;
+import org.openhab.automation.jrule.rules.JRuleWhenCronTrigger;
+import org.openhab.automation.jrule.rules.JRuleWhenItemChange;
+import org.openhab.automation.jrule.rules.event.JRuleEvent;
+import org.openhab.core.items.Item;
+import org.openhab.core.items.ItemRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ezylang.evalex.data.EvaluationValue;
 
 public class ItemRuleGenerator {
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemRuleGenerator.class);
@@ -33,8 +39,6 @@ public class ItemRuleGenerator {
     // private static final String RULE_PATH = "../conf/automation/jrule/gen";
 
     private Map<String, ClassSourceGenerator> classes = new HashMap<>();
-    private ItemRegistry itemRegistry = JRuleEventHandler.get().getItemRegistry();
-    private ItemExprEvaluator itemExprEvaluator = new ItemExprEvaluator(itemRegistry);
 
     private UnitSourceGenerator unitSG = UnitSourceGenerator.create(RULE_PKG);
 
@@ -80,7 +84,6 @@ public class ItemRuleGenerator {
                 .addOuterCodeLine(createImport(JRuleEventHandler.class))
                 .addOuterCodeLine(createImport(LoggerFactory.class))
                 .addOuterCodeLine(createImport(ItemRuleGenerator.class))
-                .addOuterCodeLine(createImport(ItemExprEvaluator.class))
                 .addOuterCodeLine(createImport(ItemCommandor.class))
                 .addOuterCodeLine(createImport(EvaluationValue.class) + ";\n")
                 .addField(createVar(Logger.class, "LOGGER", "LoggerFactory.getLogger(" + name + ".class)")
@@ -88,7 +91,7 @@ public class ItemRuleGenerator {
                         .addModifier(Modifier.STATIC))
                 .addField(createVar(ItemRegistry.class, "itemRegistry", "JRuleEventHandler.get().getItemRegistry()"))
                 .addModifier(Modifier.FINAL)
-                .expands(JRule.class);
+                .expands(JrxRule.class);
         return classSourceGenerator;
     }
 
@@ -111,13 +114,12 @@ public class ItemRuleGenerator {
     }
 
     private void createMethodAnnotations(FunctionSourceGenerator method, Item item) throws Exception {
-        String jrx = getJrx(item);
-        LOGGER.info("Creating method annotations for " + jrx);
-        Expression expression = itemExprEvaluator.getExpression(jrx, item);
+        LOGGER.info("Creating method annotations for jrx");
 
-        expression.getUndefinedVariables().forEach(v -> LOGGER.info("var: " + v));
+        IItemExpression itemXpr = ItemExpressionFactory.getItemExpression(JRX, item.getName());
+        Set<Item> items = itemXpr.getXprItems();
 
-        Set<Item> items = JrxParser.getXprItems(item, itemExprEvaluator, itemRegistry);
+        items.addAll(ItemExpressionFactory.getItemExpression(JRXP, item.getName()).getXprItems());
 
         items.forEach(i -> LOGGER.debug("itm: " + i.getName()));
 
@@ -126,9 +128,8 @@ public class ItemRuleGenerator {
                         .create(JRuleWhenItemChange.class)
                         .addParameter("item", VariableSourceGenerator.create("\"" + i.getName() + "\""))));
 
-        expression.getAllASTNodes().forEach(n -> LOGGER.trace("node: " + n.getToken()));
 
-        Set<String> udFunctions = itemExprEvaluator.getUdFunctions(expression);
+        Set<String> udFunctions = itemXpr.getUdFunctions();
 
         if (udFunctions.contains("HOUR")) {
             method.addAnnotation(AnnotationSourceGenerator
@@ -142,31 +143,8 @@ public class ItemRuleGenerator {
         return VariableSourceGenerator.create(clz, name).setValue(valAsStr).addModifier(Modifier.PRIVATE);
     }
 
-    private String getJrx(Item item) {
-        return JrxParser.getJrx(item).orElse(null);
-    }
-
     private void createMethodBody(FunctionSourceGenerator method, Item item) {
-        method.addBodyCode("ItemRuleGenerator.callRuleMethod(\"" + RuleUtil.getMethodName(item) + "\", \"" + item.getName() + "\", event);")
+        method.addBodyCode("execRule(\"" + RuleUtil.getMethodName(item) + "\", \"" + item.getName() + "\", event);")
                 .addThrowable(TypeDeclarationSourceGenerator.create(Exception.class));
-    }
-
-    public static void callRuleMethod(String methodName, String itemName, JRuleEvent event) {
-        try {
-            LOGGER.info(">> {} triggered by {}", new Object[] {methodName, RuleUtil.eventInfo(event)});
-            
-            ItemRegistry itemRegistry = JRuleEventHandler.get().getItemRegistry();
-            ItemExprEvaluator evaluator = new ItemExprEvaluator(itemRegistry);
-            if (evaluator.evalPre(itemName)) {
-                LOGGER.debug("Pre condition met");
-                EvaluationValue ev = evaluator.evalState(itemName);
-                LOGGER.info("{} eval {}", new Object[] {methodName, ev});
-                (new ItemCommandor(itemName)).command(ev.getValue());
-            } else {
-                LOGGER.info("{} pre condition not met", new Object[] {methodName});
-            }
-        } catch (Exception e) {
-            LOGGER.error("ERROR: ", e);
-        }
     }
 }

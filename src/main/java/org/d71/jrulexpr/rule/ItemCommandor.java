@@ -1,10 +1,11 @@
 package org.d71.jrulexpr.rule;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 
 import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
+import org.openhab.automation.jrule.items.JRuleItemRegistry;
 import org.openhab.core.items.Item;
+import org.openhab.core.items.Metadata;
 import org.openhab.core.library.items.DimmerItem;
 import org.openhab.core.library.items.NumberItem;
 import org.openhab.core.library.items.SwitchItem;
@@ -25,6 +26,7 @@ public class ItemCommandor {
 
     public void command(Object value) {
         LOGGER.debug("Command for {} item with eval {}", new Object[] {item.getType(), value});
+
         if (item instanceof DimmerItem) {
             ((DimmerItem)item).send(PercentType.valueOf(String.valueOf(((BigDecimal)value).intValue())));
         } else if (item instanceof NumberItem) {
