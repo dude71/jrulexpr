@@ -3,9 +3,7 @@ package org.d71.jrulexpr.rule;
 import java.math.BigDecimal;
 
 import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
-import org.openhab.automation.jrule.items.JRuleItemRegistry;
 import org.openhab.core.items.Item;
-import org.openhab.core.items.Metadata;
 import org.openhab.core.library.items.DimmerItem;
 import org.openhab.core.library.items.NumberItem;
 import org.openhab.core.library.items.SwitchItem;
@@ -25,16 +23,31 @@ public class ItemCommandor {
     }
 
     public void command(Object value) {
-        LOGGER.debug("Command for {} item with eval {}", new Object[] {item.getType(), value});
+        Object cmd = convertValue(value);
+        LOGGER.debug("Command {} for item {} ({})", new Object[] {cmd, item.getName(), item.getType()});
 
         if (item instanceof DimmerItem) {
-            ((DimmerItem)item).send(PercentType.valueOf(String.valueOf(((BigDecimal)value).intValue())));
+            ((DimmerItem)item).send((PercentType)cmd);
         } else if (item instanceof NumberItem) {
-            ((NumberItem)item).send(DecimalType.valueOf(String.valueOf(value)));
+            ((NumberItem)item).send((DecimalType)cmd);
         } else if (item instanceof SwitchItem) {
-            ((SwitchItem)item).send(String.valueOf(value).equals("ON") ? OnOffType.ON : OnOffType.OFF);
+            ((SwitchItem)item).send((OnOffType)cmd);
         }
 
+    }
+
+    protected Object convertValue(Object value) {
+        Object rv;
+        if (item instanceof DimmerItem) {
+            rv = PercentType.valueOf(String.valueOf(((BigDecimal)value).intValue()));
+        } else if (item instanceof NumberItem) {
+            rv = DecimalType.valueOf(String.valueOf(value));
+        } else if (item instanceof SwitchItem) {
+            rv = String.valueOf(value).equals("ON") ? OnOffType.ON : OnOffType.OFF;
+        } else {
+            rv = value;
+        }
+        return rv;
     }
 
 }

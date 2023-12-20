@@ -34,7 +34,7 @@ public class LockFunction  extends AbstractFunction {
 
         boolean notLocked = JRuleTimerHandler.get().getTimeLock(ruleName, dur);
 
-        LOGGER.debug("!! " + ruleName + ": locked=" + !notLocked);
+        LOGGER.debug(ruleName + ": locked=" + !notLocked);
 
         return EvaluationValue.booleanValue(notLocked);
     }

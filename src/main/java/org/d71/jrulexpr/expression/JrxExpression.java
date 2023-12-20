@@ -2,8 +2,6 @@ package org.d71.jrulexpr.expression;
 
 import com.ezylang.evalex.data.EvaluationValue;
 
-import static org.d71.jrulexpr.expression.ItemExpressionType.*;
-
 public class JrxExpression extends AbstractItemExpression {
     JrxExpression(String itemName) {
         super(itemName, "jrx");

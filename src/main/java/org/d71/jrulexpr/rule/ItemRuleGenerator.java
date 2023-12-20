@@ -46,7 +46,7 @@ public class ItemRuleGenerator {
     }
 
     public void generate(Item item) {
-        LOGGER.info("Generate rule for: " + item.getName() + " " + item.getType());
+        LOGGER.info("Generate rule for: " + item.getName() + " (" + item.getType() + ")");
         try {
             ClassSourceGenerator classSG = classes.get(item.getType());
             if (classSG == null) {
@@ -100,7 +100,7 @@ public class ItemRuleGenerator {
     }
 
     private FunctionSourceGenerator createMethod(ClassSourceGenerator classSG, Item item) {
-        LOGGER.info("Creating JRule method for: " + item.getName());
+        LOGGER.debug("Creating JRule method for: " + item.getName());
         String methodName = RuleUtil.getMethodName(item);
         return FunctionSourceGenerator.create(methodName)
                 .addModifier(Modifier.PUBLIC)
@@ -114,20 +114,21 @@ public class ItemRuleGenerator {
     }
 
     private void createMethodAnnotations(FunctionSourceGenerator method, Item item) throws Exception {
-        LOGGER.info("Creating method annotations for jrx");
+        LOGGER.debug("Creating method annotations for jrx");
 
         IItemExpression itemXpr = ItemExpressionFactory.getItemExpression(JRX, item.getName());
         Set<Item> items = itemXpr.getXprItems();
 
         items.addAll(ItemExpressionFactory.getItemExpression(JRXP, item.getName()).getXprItems());
 
-        items.forEach(i -> LOGGER.debug("itm: " + i.getName()));
+        if (LOGGER.isTraceEnabled()) {
+            items.forEach(i -> LOGGER.trace("itm: " + i.getName()));
+        }
 
-        items.forEach(i -> method.addAnnotation(
+        items.stream().filter(i -> i != item).forEach(i -> method.addAnnotation(
                 AnnotationSourceGenerator
                         .create(JRuleWhenItemChange.class)
                         .addParameter("item", VariableSourceGenerator.create("\"" + i.getName() + "\""))));
-
 
         Set<String> udFunctions = itemXpr.getUdFunctions();
 

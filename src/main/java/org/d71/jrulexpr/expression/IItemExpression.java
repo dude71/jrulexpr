@@ -2,7 +2,6 @@ package org.d71.jrulexpr.expression;
 
 import java.util.Set;
 
-import com.ezylang.evalex.EvaluationException;
 import org.openhab.core.items.Item;
 
 import com.ezylang.evalex.data.EvaluationValue;

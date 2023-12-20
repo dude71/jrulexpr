@@ -11,13 +11,15 @@ import com.ezylang.evalex.data.EvaluationValue;
 
 import static org.d71.jrulexpr.expression.ItemExpressionType.*;
 
+import org.d71.jrulexpr.expression.IItemExpression;
+
 public class JrxRule extends JRule {
     private static final Logger LOGGER = LoggerFactory.getLogger(JrxRule.class);
 
     protected String eventInfo(JRuleEvent event) {
         String rv;
         if (event instanceof JRuleItemEvent itemEvent) {
-            rv = itemEvent.getItem().toString() + ", " + itemEvent.getOldState() + "->" + itemEvent.getState();
+            rv = itemEvent.getItem().getName() + ", " + itemEvent.getOldState() + "->" + itemEvent.getState();
         } else {
             rv = event.getClass().getSimpleName();
         }
@@ -28,15 +30,16 @@ public class JrxRule extends JRule {
         try {
             LOGGER.info(">> {} triggered by {}", new Object[] {methodName, eventInfo(event)});
             
-            if (ItemExpressionFactory.getItemExpression(JRXP, itemName).evaluate().getBooleanValue()) {
-                LOGGER.debug("++ Pre condition met");
+            IItemExpression jrxp = ItemExpressionFactory.getItemExpression(JRXP, itemName);
+            if (jrxp.evaluate().getBooleanValue()) {
+                LOGGER.debug("Pre condition {} met for {}", new Object[] {jrxp, methodName});
                 EvaluationValue jrx = ItemExpressionFactory.getItemExpression(JRX, itemName).evaluate();
-                LOGGER.info("{} eval {}", new Object[] {methodName, jrx});
+                LOGGER.debug("Action condition {} {} for {}", new Object[] {jrx, jrx.getValue(), methodName});
                 EvaluationValue jrxv = ItemExpressionFactory.getItemExpression(jrx.getBooleanValue() ? JRXT : JRXF, itemName).evaluate();
-                LOGGER.info("{} value {}", new Object[]{methodName, jrxv.getValue()});
+                LOGGER.debug("State condition {} {} for {}", new Object[]{jrxv, jrxv.getValue(), methodName});
                 (new ItemCommandor(itemName)).command(jrxv.getValue());
             } else {
-                LOGGER.info("-- {} pre condition NOT met", new Object[] {methodName});
+                LOGGER.debug("-- {} pre condition NOT met", new Object[] {methodName});
             }
         } catch (Exception e) {
             LOGGER.error("ERROR: ", e);

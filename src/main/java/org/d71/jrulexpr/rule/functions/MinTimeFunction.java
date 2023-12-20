@@ -3,6 +3,7 @@ package org.d71.jrulexpr.rule.functions;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.d71.jrulexpr.expression.IItemExpression;
 import org.d71.jrulexpr.expression.ItemExpressionFactory;
@@ -36,53 +37,86 @@ public class MinTimeFunction extends AbstractFunction {
     @Override
     public EvaluationValue evaluate(Expression expression, Token functionToken, EvaluationValue... parameterValues)
             throws EvaluationException {
-        EvaluationValue rv = EvaluationValue.booleanValue(false);
+        EvaluationValue rv;
 
         IItemExpression jrx = ItemExpressionFactory.getItemExpression(ItemExpressionType.JRX, item.getName());
 
-        LOGGER.debug("jrx: " + jrx);
+        // t null, jrx false, rv = true, no create t
+        // t null, jrx true, rv = true, create t
+        // t !null, jrx false, rv = false, no reschedule
+        // t !null, jrx true, rv = false, reschedule
 
         try {
-            if (jrx.evaluate().getBooleanValue()) {
-                Duration duration = parameterValues[0].getDurationValue();
-                String ruleName = RuleUtil.getMethodName(item);
-                JRuleTimer timer = timers.get(ruleName);
-                if (timer == null) {
+            Duration duration = Duration
+                    .ofSeconds(parameterValues.length == 1 ? parameterValues[0].getNumberValue().intValue() : 5);
+            String ruleName = RuleUtil.getMethodName(item);
+            JRuleTimer timer;
+            synchronized (this) {
+                timer = timers.get(ruleName);
+            }
+            boolean jrxEval = jrx.evaluate().getBooleanValue();
+            LOGGER.debug("jrx: " + jrxEval);
+
+            if (timer == null) {
+                rv = EvaluationValue.booleanValue(true);
+                if (jrxEval) {
                     LOGGER.debug("creating timer..");
-                    EvaluationValue jrxf = ItemExpressionFactory.getItemExpression(ItemExpressionType.JRXF, item.getName()).evaluate();
-                    timer = JRuleTimerHandler.get().createTimer(ruleName, duration, t -> {
-                        try {
-                            (new ItemCommandor(item.getName())).command(jrxf.getValue());
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        } finally {
-                            t.cancel();
-                            timers.remove(ruleName);
-                        }
-                    }, null);
-                    timers.put(ruleName, timer);
-                    EvaluationValue.booleanValue(true);
-                } else {
+                    timer = JRuleTimerHandler.get().createTimer(ruleName, duration, timerAction(ruleName, duration),
+                            null);
+                    synchronized (this) {
+                        timers.put(ruleName, timer);
+                    }
+                    rv = EvaluationValue.booleanValue(true);
+                }
+            } else {
+                rv = EvaluationValue.booleanValue(false);
+                if (jrxEval) {
                     LOGGER.debug("rescheduling timer " + ruleName);
                     timer.rescheduleTimer(duration);
                 }
             }
         } catch (Exception e) {
-            if (e instanceof EvaluationException) throw (EvaluationException)e;
-            throw new RuntimeException(e);
+            if (e instanceof EvaluationException)
+                throw (EvaluationException) e;
+            else
+                throw new RuntimeException(e);
         }
 
         return rv;
     }
-    
-}
 
-/*
- * MINTIME(timeout) only in jrxp
- *
- * 1a. jrule triggered, jrxp with MINTIME(timeout)
- * 1b. jrxp eval = timer exits ? (jrx eval ? timer.timeout=timeleft+timeout : nop), false : new timer (with inverse action jrxf), true
- * 1c. jrx eval when jrxp true, do action
- * 2a. timer timeout
- * 2b. do inverse, timer = null
- */
+    private Consumer<JRuleTimer> timerAction(String ruleName, Duration duration) {
+        return t -> {
+            boolean clear = true;
+            try {
+                IItemExpression jrx = ItemExpressionFactory.getItemExpression(ItemExpressionType.JRX, item.getName());
+                EvaluationValue jrxEval = jrx.evaluate();
+                LOGGER.debug("jrx: " + jrxEval.getValue());
+
+                if (jrxEval.getBooleanValue()) {
+                    // jrx action condition still applies, no inverse action!
+                    LOGGER.debug("rescheduling timer " + ruleName + " AFTER timeout");
+                    t.rescheduleTimer(duration);
+                    clear = false;
+                } else {
+                    EvaluationValue jrxf = ItemExpressionFactory
+                            .getItemExpression(ItemExpressionType.JRXF, item.getName())
+                            .evaluate();
+                    LOGGER.debug("Executing timer action cmd={} for {}",
+                            new Object[] { jrxf.getValue(), item.getName() });
+                    (new ItemCommandor(item.getName())).command(jrxf.getValue());
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            } finally {
+                if (clear) {
+                    synchronized (this) {
+                        t.cancel();
+                        timers.remove(ruleName);
+                    }
+                }
+            }
+        };
+    }
+
+}

@@ -46,16 +46,13 @@ public abstract class AbstractItemExpression implements IItemExpression {
 
             if (object instanceof DecimalType)
                 val = EvaluationValue.numberValue(
-                        ((DecimalType) object).toBigDecimal()
-                );
+                        ((DecimalType) object).toBigDecimal());
             else if (object instanceof OnOffType)
                 val = EvaluationValue.stringValue(
-                        ((OnOffType) object).toString()
-                );
+                        ((OnOffType) object).toString());
             else if (object instanceof UnDefType) {
                 val = EvaluationValue.nullValue();
-            }
-            else
+            } else
                 val = defaultConverter.convertObject(object, configuration);
 
             return val;
@@ -79,28 +76,30 @@ public abstract class AbstractItemExpression implements IItemExpression {
     }
 
     protected Expression getExpression(String expression, Item item) {
-        LOGGER.info("EvalEx..");
+        LOGGER.debug("EvalEx..");
         return new Expression(expression,
                 ExpressionConfiguration.builder()
                         .evaluationValueConverter(valueConverter)
                         .build()
                         .withAdditionalFunctions(
-                            Map.entry("HOUR", new HourFunction()),
-                            Map.entry("LOCK", new LockFunction(RuleUtil.getMethodName(item))),
-                            Map.entry("MINTIME", new MinTimeFunction(item))
-                        ));
-    }    
+                                Map.entry("HOUR", new HourFunction()),
+                                Map.entry("LOCK", new LockFunction(RuleUtil.getMethodName(item))),
+                                Map.entry("MINTIME", new MinTimeFunction(item))));
+    }
 
     protected EvaluationValue evalXpr(String expression) throws Exception {
         LOGGER.debug("eval: " + expression);
 
         Expression ezyExpr = getExpression(expression, getItem());
 
-        ezyExpr.getUndefinedVariables().forEach(v -> LOGGER.trace("var: " + v));
-
         List<Item> items = ezyExpr.getUndefinedVariables().stream().map(v -> itemRegistry.get(v)).toList();
 
-        items.forEach(i -> LOGGER.trace("itm: " + i.getName() + " " + i.getState() + " " + i.getType() + " " + i.getClass()));
+        if (LOGGER.isTraceEnabled()) {
+            ezyExpr.getUndefinedVariables().forEach(v -> LOGGER.trace("var: " + v));
+
+            items.forEach(i -> LOGGER
+                    .trace("itm: " + i.getName() + " " + i.getState() + " " + i.getType() + " " + i.getClass()));
+        }
 
         items.forEach(i -> ezyExpr.with(i.getName(), i.getState()));
         return ezyExpr.evaluate();
@@ -116,7 +115,7 @@ public abstract class AbstractItemExpression implements IItemExpression {
         if (xpr.isPresent()) {
             Expression expr = getExpression(xpr.get(), getItem());
             items = expr.getUndefinedVariables().stream()
-                .map(v -> itemRegistry.get(v)).collect(Collectors.toSet());
+                    .map(v -> itemRegistry.get(v)).collect(Collectors.toSet());
         } else {
             items = Collections.emptySet();
         }
@@ -134,7 +133,7 @@ public abstract class AbstractItemExpression implements IItemExpression {
 
     private boolean isUd(String name) {
         return "HOUR".equals(name) ||
-            "LOCK".equals(name) ||
-            "MINTIME".equals(name);
-    }    
+                "LOCK".equals(name) ||
+                "MINTIME".equals(name);
+    }
 }
