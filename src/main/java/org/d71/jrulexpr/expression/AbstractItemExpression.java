@@ -1,17 +1,14 @@
 package org.d71.jrulexpr.expression;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.d71.jrulexpr.rule.RuleUtil;
-import org.d71.jrulexpr.rule.functions.HourFunction;
-import org.d71.jrulexpr.rule.functions.LockFunction;
-import org.d71.jrulexpr.rule.functions.MinTimeFunction;
+import com.ezylang.evalex.Expression;
+import com.ezylang.evalex.config.ExpressionConfiguration;
+import com.ezylang.evalex.data.EvaluationValue;
+import com.ezylang.evalex.data.conversion.DefaultEvaluationValueConverter;
+import com.ezylang.evalex.data.conversion.EvaluationValueConverterIfc;
+import com.ezylang.evalex.functions.AbstractFunction;
+import com.ezylang.evalex.functions.FunctionIfc;
+import com.ezylang.evalex.parser.Token.TokenType;
+import org.d71.jrulexpr.rule.functions.*;
 import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemRegistry;
@@ -21,23 +18,20 @@ import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ezylang.evalex.Expression;
-import com.ezylang.evalex.config.ExpressionConfiguration;
-import com.ezylang.evalex.data.EvaluationValue;
-import com.ezylang.evalex.data.conversion.DefaultEvaluationValueConverter;
-import com.ezylang.evalex.data.conversion.EvaluationValueConverterIfc;
-import com.ezylang.evalex.parser.Token.TokenType;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public abstract class AbstractItemExpression implements IItemExpression {
-    protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
-    protected ItemRegistry itemRegistry = JRuleEventHandler.get().getItemRegistry();
+    private static final Map<String, Class<? extends FunctionIfc>> UD_FUNCTIONS = Map.of(
+            "HOST", HostFunction.class,
+            "HOUR", HourFunction.class,
+            "MINTIME", MinTimeFunction.class,
+            "LOCK", LockFunction.class
+    );
 
-    protected String itemName;
-
-    protected String tagName;
-
-    private EvaluationValueConverterIfc valueConverter = new EvaluationValueConverterIfc() {
+    private final EvaluationValueConverterIfc valueConverter = new EvaluationValueConverterIfc() {
         private EvaluationValueConverterIfc defaultConverter = new DefaultEvaluationValueConverter();
 
         @Override
@@ -59,38 +53,72 @@ public abstract class AbstractItemExpression implements IItemExpression {
         }
     };
 
+    protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+
+    protected ItemRegistry itemRegistry = JRuleEventHandler.get().getItemRegistry();
+
+    protected String itemName;
+
+    protected String tagName;
+
     AbstractItemExpression(String itemName, String tagName) {
         this.itemName = itemName;
         this.tagName = tagName;
+    }
+
+    public Optional<String> getXpr() {
+        return getTagValue();
+    }
+
+    public Set<Item> getXprItems() throws Exception {
+        Set<Item> items;
+        Optional<String> xpr = getXpr();
+        if (xpr.isPresent()) {
+            Expression expr = getExpression(xpr.get());
+            items = expr.getUndefinedVariables().stream()
+                    .map(v -> itemRegistry.get(v)).collect(Collectors.toSet());
+        } else {
+            items = Collections.emptySet();
+        }
+        return items;
+    }
+
+    public Set<String> getUdFunctions() throws Exception {
+        Optional<String> xpr = getXpr();
+        return xpr.isPresent() ? new HashSet<>(getExpression(xpr.get()).getAllASTNodes().stream()
+                .map(n -> n.getToken())
+                .filter(t -> t.getType() == TokenType.FUNCTION && isUd(t.getValue()))
+                .map(t -> t.getValue())
+                .toList()) : Collections.emptySet();
+    }
+
+    public EvaluationValue evaluate() throws Exception {
+        EvaluationValue rv;
+        Optional<String> xpr = getXpr();
+        if (xpr.isPresent()) {
+            rv = evalXpr(xpr.get());
+            validateXprValue(rv);
+        } else {
+            rv = getDefault();
+        }
+        return rv;
+    }
+
+    protected EvaluationValue getDefault() {
+        return EvaluationValue.nullValue();
+    }
+
+    protected void validateXprValue(EvaluationValue value) {
     }
 
     protected Item getItem() {
         return itemRegistry.get(itemName);
     }
 
-    protected Optional<String> getTagValue(String tagName) {
-        Optional<String> tagVal = getItem().getTags().stream()
-                .filter(t -> t.matches("^" + tagName + "\s*=.*$"))
-                .findFirst();
-        return tagVal.isPresent() ? Optional.of(tagVal.get().replaceFirst(tagName + "\s*=", "")) : tagVal;
-    }
+    private EvaluationValue evalXpr(String xpr) throws Exception {
+        Expression ezyExpr = getExpression(xpr);
 
-    protected Expression getExpression(String expression, Item item) {
-        LOGGER.debug("EvalEx..");
-        return new Expression(expression,
-                ExpressionConfiguration.builder()
-                        .evaluationValueConverter(valueConverter)
-                        .build()
-                        .withAdditionalFunctions(
-                                Map.entry("HOUR", new HourFunction()),
-                                Map.entry("LOCK", new LockFunction(RuleUtil.getMethodName(item))),
-                                Map.entry("MINTIME", new MinTimeFunction(item))));
-    }
-
-    protected EvaluationValue evalXpr(String expression) throws Exception {
-        LOGGER.debug("eval: " + expression);
-
-        Expression ezyExpr = getExpression(expression, getItem());
+        LOGGER.debug("eval: " + ezyExpr);
 
         List<Item> items = ezyExpr.getUndefinedVariables().stream().map(v -> itemRegistry.get(v)).toList();
 
@@ -105,35 +133,63 @@ public abstract class AbstractItemExpression implements IItemExpression {
         return ezyExpr.evaluate();
     }
 
-    public Optional<String> getXpr() {
-        return getTagValue(tagName);
+    private Expression getExpression(String xpr) {
+        LOGGER.debug("EvalEx..");
+
+        return new Expression(xpr,
+                ExpressionConfiguration.builder()
+                        .evaluationValueConverter(valueConverter)
+                        .build()
+                        .withAdditionalFunctions(getUdFunctions(xpr)));
     }
 
-    public Set<Item> getXprItems() throws Exception {
-        Set<Item> items;
-        Optional<String> xpr = getXpr();
-        if (xpr.isPresent()) {
-            Expression expr = getExpression(xpr.get(), getItem());
-            items = expr.getUndefinedVariables().stream()
-                    .map(v -> itemRegistry.get(v)).collect(Collectors.toSet());
-        } else {
-            items = Collections.emptySet();
-        }
-        return items;
+    private Map.Entry<String, FunctionIfc>[] getUdFunctions(String xpr) {
+        Set<Map.Entry<String, FunctionIfc>> functions = UD_FUNCTIONS.entrySet().stream()
+                .filter(e -> xpr.contains(e.getKey()) && AbstractFunction.class.isAssignableFrom(e.getValue()))
+                .map(e -> {
+                    try {
+                        return Map.entry(e.getKey(),(FunctionIfc) e.getValue().getDeclaredConstructor().newInstance());
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                })
+                .collect(Collectors.toSet());
+
+        Item item = getItem();
+
+        Set<Map.Entry<String, FunctionIfc>> itmFunctions = UD_FUNCTIONS.entrySet().stream()
+                .filter(e -> xpr.contains(e.getKey()) && !functions.contains(e) && AbstractItemFunction.class.isAssignableFrom(e.getValue()))
+                .map(e -> {
+                    try {
+                        return Map.entry(e.getKey(), (FunctionIfc)e.getValue().getDeclaredConstructor(Item.class).newInstance(item));
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                })
+                .collect(Collectors.toSet());
+
+        Set<Map.Entry<String, FunctionIfc>> allFunctions = new HashSet<>();
+        allFunctions.addAll(functions);
+        allFunctions.addAll(itmFunctions);
+
+        Map.Entry<String, FunctionIfc>[] funcArr = new HashMap.SimpleEntry[allFunctions.size()];
+
+        AtomicInteger i = new AtomicInteger(0);
+        allFunctions.forEach(f -> {
+            funcArr[i.getAndAdd(1)] = new AbstractMap.SimpleEntry<>(f.getKey(), f.getValue());
+        });
+
+        return funcArr;
     }
 
-    public Set<String> getUdFunctions() throws Exception {
-        Optional<String> xpr = getXpr();
-        return xpr.isPresent() ? new HashSet<>(getExpression(xpr.get(), getItem()).getAllASTNodes().stream()
-                .map(n -> n.getToken())
-                .filter(t -> t.getType() == TokenType.FUNCTION && isUd(t.getValue()))
-                .map(t -> t.getValue())
-                .toList()) : Collections.emptySet();
+    private Optional<String> getTagValue() {
+        Optional<String> tagVal = getItem().getTags().stream()
+                .filter(t -> t.matches("^" + tagName + "\s*=.*$"))
+                .findFirst();
+        return tagVal.isPresent() ? Optional.of(tagVal.get().replaceFirst(tagName + "\s*=", "")) : tagVal;
     }
 
     private boolean isUd(String name) {
-        return "HOUR".equals(name) ||
-                "LOCK".equals(name) ||
-                "MINTIME".equals(name);
+        return UD_FUNCTIONS.containsKey(name);
     }
 }

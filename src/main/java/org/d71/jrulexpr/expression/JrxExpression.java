@@ -8,15 +8,14 @@ public class JrxExpression extends AbstractItemExpression {
     }
 
     @Override
-    public EvaluationValue evaluate() throws Exception { // evaluate jrx to (new) item state
-        String jrx = getXpr().orElseThrow(() -> new IllegalStateException("jrx tag must be present!"));
+    protected EvaluationValue getDefault() {
+        throw new IllegalStateException("jrx tag must be present!");
+    }
 
-        EvaluationValue ev = evalXpr(jrx);
-        if (!ev.isBooleanValue()) {
+    @Override
+    protected void validateXprValue(EvaluationValue value) {
+        if (!value.isBooleanValue()) {
             throw new IllegalStateException("jrx must evaluate to boolean!");
         }
-        LOGGER.debug("jrx: " + jrx + " ev: " + ev);
-
-        return ev;
     }
 }

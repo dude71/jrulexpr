@@ -53,6 +53,13 @@ public class JrxExpressionTest {
         EvaluationValue eval = jrxExpression.evaluate();
         assertTrue(eval.getBooleanValue());
     }
+
+    @Test
+    public void hourFunction() throws  Exception {
+        Item itm = getMockedItem("NR_ITM", CoreItemFactory.NUMBER, "1", "jrx=HOUR() > 1");
+        JrxExpression jrxExpression = new JrxExpressionForTest(itm.getName(), itemRegistry);
+        EvaluationValue eval = jrxExpression.evaluate();
+    }
     
     private Item getMockedItem(String name, String type, String value, String... tags) throws Exception {
         Item itm = Mockito.mock(Item.class);
@@ -68,5 +75,5 @@ public class JrxExpressionTest {
         Mockito.lenient().when(itemRegistry.getItem(name)).thenReturn(itm);
         Mockito.lenient().when(itemRegistry.get(name)).thenReturn(itm);
         return itm;
-    }    
+    }
 }

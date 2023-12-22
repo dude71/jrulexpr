@@ -13,13 +13,7 @@ public class JrxtExpression extends AbstractItemExpression {
         super(itemName, "jrxt");
     }
 
-    @Override
-    public EvaluationValue evaluate() throws Exception {
-        Optional<String> jrxt = getTagValue(tagName);
-        return jrxt.isPresent() ? evalXpr(jrxt.get()) : getDefault();
-    }
-
-    EvaluationValue getDefault() {
+    protected EvaluationValue getDefault() {
         Item item = getItem();
         EvaluationValue ev = EvaluationValue.nullValue();
         if (CoreItemFactory.DIMMER.equals(item.getType())) {

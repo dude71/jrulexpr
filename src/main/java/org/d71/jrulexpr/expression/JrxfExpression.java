@@ -13,13 +13,7 @@ public class JrxfExpression extends AbstractItemExpression {
         super(itemName, "jrxf");
     }
 
-    @Override
-    public EvaluationValue evaluate() throws Exception {
-        Optional<String> jrxf = getTagValue(tagName);
-        return jrxf.isPresent() ? evalXpr(jrxf.get()) : getDefault();
-    }
-
-    EvaluationValue getDefault() {
+    protected EvaluationValue getDefault() {
         Item item = getItem();
         EvaluationValue ev = EvaluationValue.nullValue();
         if (CoreItemFactory.DIMMER.equals(item.getType())) {
