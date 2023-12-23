@@ -1,6 +1,7 @@
 package org.d71.jrulexpr.rule;
 
 import org.d71.jrulexpr.expression.ItemExpressionFactory;
+import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
 import org.openhab.automation.jrule.rules.JRule;
 import org.openhab.automation.jrule.rules.event.JRuleEvent;
 import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
@@ -26,8 +27,9 @@ public class JrxRule extends JRule {
         return rv;
     }       
 
-    protected void execRule(String methodName, String itemName, JRuleEvent event) {
+    protected void execRule(String itemName, JRuleEvent event) {
         try {
+            String methodName = RuleUtil.getMethodName(itemName);
             LOGGER.info(">> {} triggered by {}", new Object[] {methodName, eventInfo(event)});
             
             IItemExpression jrxp = ItemExpressionFactory.getItemExpression(JRXP, itemName);

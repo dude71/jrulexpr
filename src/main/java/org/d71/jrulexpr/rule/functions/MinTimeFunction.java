@@ -24,14 +24,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @FunctionParameter(name = "duration")
-public class MinTimeFunction extends AbstractFunction {
+public class MinTimeFunction extends AbstractItemFunction {
     private static final Logger LOGGER = LoggerFactory.getLogger(MinTimeFunction.class);
     private static Map<String, JRuleTimer> timers = new HashMap<>();
 
-    private Item item;
-
     public MinTimeFunction(Item item) {
-        this.item = item;
+        super(item);
     }
 
     @Override
@@ -55,7 +53,7 @@ public class MinTimeFunction extends AbstractFunction {
                 timer = timers.get(ruleName);
             }
             boolean jrxEval = jrx.evaluate().getBooleanValue();
-            LOGGER.debug("jrx: " + jrxEval);
+            LOGGER.debug(item.getName() + " jrx: " + jrxEval);
 
             if (timer == null) {
                 rv = EvaluationValue.booleanValue(true);

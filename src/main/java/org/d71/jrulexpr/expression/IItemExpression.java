@@ -9,7 +9,7 @@ import com.ezylang.evalex.data.EvaluationValue;
 public interface IItemExpression {
     Set<Item> getXprItems() throws Exception;
 
-    Set<String> getUdFunctions() throws Exception;
+    Set<String> getXprFunctions() throws Exception;
     
     EvaluationValue evaluate() throws Exception;
 }

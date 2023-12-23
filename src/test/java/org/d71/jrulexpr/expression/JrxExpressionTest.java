@@ -1,8 +1,10 @@
 package org.d71.jrulexpr.expression;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -56,9 +58,28 @@ public class JrxExpressionTest {
 
     @Test
     public void hourFunction() throws  Exception {
-        Item itm = getMockedItem("NR_ITM", CoreItemFactory.NUMBER, "1", "jrx=HOUR() > 1");
+        int h = LocalTime.now().getHour();
+        Item itm = getMockedItem("NR_ITM", CoreItemFactory.NUMBER, "1", "jrx=HOUR() == " + h);
         JrxExpression jrxExpression = new JrxExpressionForTest(itm.getName(), itemRegistry);
         EvaluationValue eval = jrxExpression.evaluate();
+        assertTrue(eval.getBooleanValue());
+    }
+
+    @Test
+    public void lockFunction() throws Exception {
+        Item item = getMockedItem("ITM", CoreItemFactory.NUMBER, "1", "jrxp=LOCK(1)");
+        JrxpExpression jrxpExpression = new JrxpExpressionForTest(item.getName(), itemRegistry);
+        EvaluationValue eval = jrxpExpression.evaluate();
+        assertTrue(eval.getBooleanValue()); // not locked
+        eval = jrxpExpression.evaluate();
+        assertFalse(eval.getBooleanValue()); // locked     
+    }
+
+    @Test
+    public void hostFunction() throws Exception {
+        Item itm = getMockedItem("itm", CoreItemFactory.NUMBER, "0", "jrx=HOST(\"localhost\")");
+        JrxExpression jrxExpression = new JrxExpressionForTest(itm.getName(), itemRegistry);
+        assertTrue(jrxExpression.evaluate().getBooleanValue());
     }
     
     private Item getMockedItem(String name, String type, String value, String... tags) throws Exception {

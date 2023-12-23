@@ -1,7 +1,6 @@
 package org.d71.jrulexpr.expression;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
 import org.openhab.core.items.Item;
 import org.openhab.core.library.CoreItemFactory;

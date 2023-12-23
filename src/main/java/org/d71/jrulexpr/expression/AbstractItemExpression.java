@@ -28,8 +28,7 @@ public abstract class AbstractItemExpression implements IItemExpression {
             "HOST", HostFunction.class,
             "HOUR", HourFunction.class,
             "MINTIME", MinTimeFunction.class,
-            "LOCK", LockFunction.class
-    );
+            "LOCK", LockFunction.class);
 
     private final EvaluationValueConverterIfc valueConverter = new EvaluationValueConverterIfc() {
         private EvaluationValueConverterIfc defaultConverter = new DefaultEvaluationValueConverter();
@@ -75,15 +74,14 @@ public abstract class AbstractItemExpression implements IItemExpression {
         Optional<String> xpr = getXpr();
         if (xpr.isPresent()) {
             Expression expr = getExpression(xpr.get());
-            items = expr.getUndefinedVariables().stream()
-                    .map(v -> itemRegistry.get(v)).collect(Collectors.toSet());
+            items = getXprItems(expr);
         } else {
             items = Collections.emptySet();
         }
         return items;
     }
 
-    public Set<String> getUdFunctions() throws Exception {
+    public Set<String> getXprFunctions() throws Exception {
         Optional<String> xpr = getXpr();
         return xpr.isPresent() ? new HashSet<>(getExpression(xpr.get()).getAllASTNodes().stream()
                 .map(n -> n.getToken())
@@ -115,19 +113,26 @@ public abstract class AbstractItemExpression implements IItemExpression {
         return itemRegistry.get(itemName);
     }
 
-    private EvaluationValue evalXpr(String xpr) throws Exception {
-        Expression ezyExpr = getExpression(xpr);
-
-        LOGGER.debug("eval: " + ezyExpr);
-
-        List<Item> items = ezyExpr.getUndefinedVariables().stream().map(v -> itemRegistry.get(v)).toList();
+    private Set<Item> getXprItems(Expression expression) throws Exception {
+        Set<Item> items = expression.getUndefinedVariables().stream()
+                .map(v -> itemRegistry.get(v)).collect(Collectors.toSet());
 
         if (LOGGER.isTraceEnabled()) {
-            ezyExpr.getUndefinedVariables().forEach(v -> LOGGER.trace("var: " + v));
+            expression.getUndefinedVariables().forEach(v -> LOGGER.trace("var: " + v));
 
             items.forEach(i -> LOGGER
                     .trace("itm: " + i.getName() + " " + i.getState() + " " + i.getType() + " " + i.getClass()));
         }
+
+        return items;
+    }
+
+    private EvaluationValue evalXpr(String xpr) throws Exception {
+        Expression ezyExpr = getExpression(xpr);
+
+        LOGGER.debug("eval: " + xpr);
+
+        Set<Item> items = getXprItems(ezyExpr);
 
         items.forEach(i -> ezyExpr.with(i.getName(), i.getState()));
         return ezyExpr.evaluate();
@@ -144,24 +149,28 @@ public abstract class AbstractItemExpression implements IItemExpression {
     }
 
     private Map.Entry<String, FunctionIfc>[] getUdFunctions(String xpr) {
-        Set<Map.Entry<String, FunctionIfc>> functions = UD_FUNCTIONS.entrySet().stream()
-                .filter(e -> xpr.contains(e.getKey()) && AbstractFunction.class.isAssignableFrom(e.getValue()))
+        Item item = getItem();
+
+        Set<Map.Entry<String, FunctionIfc>> itmFunctions = UD_FUNCTIONS.entrySet().stream()
+                .filter(e -> xpr.contains(e.getKey()) && AbstractItemFunction.class.isAssignableFrom(e.getValue()))
                 .map(e -> {
                     try {
-                        return Map.entry(e.getKey(),(FunctionIfc) e.getValue().getDeclaredConstructor().newInstance());
+                        return Map.entry(e.getKey(),
+                                (FunctionIfc) e.getValue().getDeclaredConstructor(Item.class).newInstance(item));
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
                 })
                 .collect(Collectors.toSet());
 
-        Item item = getItem();
+        Set<String> itmFuncSet = itmFunctions.stream().map(f -> f.getKey()).collect(Collectors.toSet());
 
-        Set<Map.Entry<String, FunctionIfc>> itmFunctions = UD_FUNCTIONS.entrySet().stream()
-                .filter(e -> xpr.contains(e.getKey()) && !functions.contains(e) && AbstractItemFunction.class.isAssignableFrom(e.getValue()))
+        Set<Map.Entry<String, FunctionIfc>> functions = UD_FUNCTIONS.entrySet().stream()
+                .filter(e -> xpr.contains(e.getKey()) && !itmFuncSet.contains(e.getKey())
+                        && AbstractFunction.class.isAssignableFrom(e.getValue()))
                 .map(e -> {
                     try {
-                        return Map.entry(e.getKey(), (FunctionIfc)e.getValue().getDeclaredConstructor(Item.class).newInstance(item));
+                        return Map.entry(e.getKey(), (FunctionIfc) e.getValue().getDeclaredConstructor().newInstance());
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }

@@ -119,23 +119,29 @@ public class ItemRuleGenerator {
         IItemExpression itemXpr = ItemExpressionFactory.getItemExpression(JRX, item.getName());
         Set<Item> items = itemXpr.getXprItems();
 
-        items.addAll(ItemExpressionFactory.getItemExpression(JRXP, item.getName()).getXprItems());
-
         if (LOGGER.isTraceEnabled()) {
-            items.forEach(i -> LOGGER.trace("itm: " + i.getName()));
+            items.forEach(i -> LOGGER.trace("itm: " + i));
         }
+
+        items.addAll(ItemExpressionFactory.getItemExpression(JRXP, item.getName()).getXprItems());
 
         items.stream().filter(i -> i != item).forEach(i -> method.addAnnotation(
                 AnnotationSourceGenerator
                         .create(JRuleWhenItemChange.class)
                         .addParameter("item", VariableSourceGenerator.create("\"" + i.getName() + "\""))));
 
-        Set<String> udFunctions = itemXpr.getUdFunctions();
+        Set<String> udFunctions = itemXpr.getXprFunctions();
 
         if (udFunctions.contains("HOUR")) {
             method.addAnnotation(AnnotationSourceGenerator
                     .create(JRuleWhenCronTrigger.class)
                     .addParameter("cron", VariableSourceGenerator.create("\"0 0 * * * *\"")));
+        }
+
+        if (udFunctions.contains("HOST")) {
+            method.addAnnotation(AnnotationSourceGenerator
+                    .create(JRuleWhenCronTrigger.class)
+                    .addParameter("cron", VariableSourceGenerator.create("\"0 0/5 * * * *\"")));
         }
 
     }
@@ -145,7 +151,7 @@ public class ItemRuleGenerator {
     }
 
     private void createMethodBody(FunctionSourceGenerator method, Item item) {
-        method.addBodyCode("execRule(\"" + RuleUtil.getMethodName(item) + "\", \"" + item.getName() + "\", event);")
+        method.addBodyCode("execRule(\"" + item.getName() + "\", event);")
                 .addThrowable(TypeDeclarationSourceGenerator.create(Exception.class));
     }
 }

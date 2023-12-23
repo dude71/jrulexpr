@@ -5,6 +5,10 @@ import org.openhab.core.items.Item;
 
 public class RuleUtil {
     public static String getMethodName(Item item) {
-        return CaseUtils.toCamelCase(item.getName(), false, '_', '-', ' ');
+        return getMethodName(item.getName());
+    }
+    
+    public static String getMethodName(String itemName) {
+        return CaseUtils.toCamelCase(itemName, false, '_', '-', ' ');
     } 
 }
