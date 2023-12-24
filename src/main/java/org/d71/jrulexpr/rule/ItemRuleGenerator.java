@@ -58,7 +58,7 @@ public class ItemRuleGenerator {
             createMethodBody(method, item);
             classSG.addMethod(method);
         } catch (Exception e) {
-            LOGGER.error(e.getLocalizedMessage());
+            LOGGER.error(e.getClass().getSimpleName() + " " + e.getMessage());
         }
     }
 
@@ -131,6 +131,10 @@ public class ItemRuleGenerator {
                         .addParameter("item", VariableSourceGenerator.create("\"" + i.getName() + "\""))));
 
         Set<String> udFunctions = itemXpr.getXprFunctions();
+
+        if (LOGGER.isTraceEnabled()) {
+            udFunctions.forEach(f -> LOGGER.trace("fnc: " + f));
+        }        
 
         if (udFunctions.contains("HOUR")) {
             method.addAnnotation(AnnotationSourceGenerator

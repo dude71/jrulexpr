@@ -81,6 +81,13 @@ public class JrxExpressionTest {
         JrxExpression jrxExpression = new JrxExpressionForTest(itm.getName(), itemRegistry);
         assertTrue(jrxExpression.evaluate().getBooleanValue());
     }
+
+    @Test
+    public void hostFunctionUnreachable() throws Exception {
+        Item itm = getMockedItem("itm", CoreItemFactory.NUMBER, "0", "jrx=HOST(\"nokia-sb-8000.dmz.lan\")");
+        JrxExpression jrxExpression = new JrxExpressionForTest(itm.getName(), itemRegistry);
+        assertFalse(jrxExpression.evaluate().getBooleanValue());
+    }
     
     private Item getMockedItem(String name, String type, String value, String... tags) throws Exception {
         Item itm = Mockito.mock(Item.class);

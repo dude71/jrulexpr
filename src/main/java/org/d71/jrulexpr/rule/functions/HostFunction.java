@@ -28,15 +28,14 @@ public class HostFunction extends AbstractFunction {
     private boolean hostReachable(String hostOrIp) {
         boolean rv = false;
         try {
-            InetAddress inet = InetAddress.getByName(hostOrIp);
-            rv = inet.isReachable(2000);
-        } catch (UnknownHostException e) {
+            Process proc = java.lang.Runtime.getRuntime().exec("ping -c 1 " + hostOrIp);
+            int i = proc.waitFor();
+            rv = (i == 0);
+            LOGGER.debug("Host " + hostOrIp + (rv ? "" : " NOT") + " reachable (i=" + i + ")");
+        } catch (Exception e) {
             LOGGER.debug(e.getMessage());
             rv = false;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
-        if (rv) LOGGER.debug("Host " + hostOrIp + "reachable");
         return rv;
     }
 }

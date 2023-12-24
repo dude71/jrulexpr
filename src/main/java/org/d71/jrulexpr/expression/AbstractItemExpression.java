@@ -14,6 +14,7 @@ import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +75,7 @@ public abstract class AbstractItemExpression implements IItemExpression {
         Optional<String> xpr = getXpr();
         if (xpr.isPresent()) {
             Expression expr = getExpression(xpr.get());
-            items = getXprItems(expr);
+            items = new HashSet<>(getXprItems(expr));
         } else {
             items = Collections.emptySet();
         }
@@ -113,9 +114,9 @@ public abstract class AbstractItemExpression implements IItemExpression {
         return itemRegistry.get(itemName);
     }
 
-    private Set<Item> getXprItems(Expression expression) throws Exception {
-        Set<Item> items = expression.getUndefinedVariables().stream()
-                .map(v -> itemRegistry.get(v)).collect(Collectors.toSet());
+    private List<Item> getXprItems(Expression expression) throws Exception {
+        List<Item> items = expression.getUndefinedVariables().stream()
+                .map(v -> itemRegistry.get(v)).collect(Collectors.toList());
 
         if (LOGGER.isTraceEnabled()) {
             expression.getUndefinedVariables().forEach(v -> LOGGER.trace("var: " + v));
@@ -130,12 +131,13 @@ public abstract class AbstractItemExpression implements IItemExpression {
     private EvaluationValue evalXpr(String xpr) throws Exception {
         Expression ezyExpr = getExpression(xpr);
 
-        LOGGER.debug("eval: " + xpr);
+        LOGGER.debug(itemName + "eval: " + xpr);
 
-        Set<Item> items = getXprItems(ezyExpr);
+        List<Item> items = getXprItems(ezyExpr);
 
-        items.forEach(i -> ezyExpr.with(i.getName(), i.getState()));
-        return ezyExpr.evaluate();
+        Map<String, State> values = items.stream().collect(Collectors.toMap(Item::getName, Item::getState));
+
+        return ezyExpr.withValues(values).evaluate();
     }
 
     private Expression getExpression(String xpr) {
