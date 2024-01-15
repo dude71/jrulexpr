@@ -1,9 +1,5 @@
 package org.d71.jrulexpr.rule.functions;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -88,6 +88,15 @@ public class JrxExpressionTest {
         JrxExpression jrxExpression = new JrxExpressionForTest(itm.getName(), itemRegistry);
         assertFalse(jrxExpression.evaluate().getBooleanValue());
     }
+
+    @Test
+    public void lazyEvaluation() throws Exception {
+        getMockedItem("NR_A", CoreItemFactory.NUMBER, "1");
+        getMockedItem("NR_B", CoreItemFactory.NUMBER, "2");
+        Item itm = getMockedItem("NR_C", CoreItemFactory.NUMBER, "0", "jrx=NR_A == 0 && NR_B == 2");
+        JrxExpression jrxExpression = new JrxExpressionForTest(itm.getName(), itemRegistry); 
+        assertFalse(jrxExpression.evaluate().getBooleanValue());       
+    }
     
     private Item getMockedItem(String name, String type, String value, String... tags) throws Exception {
         Item itm = Mockito.mock(Item.class);
