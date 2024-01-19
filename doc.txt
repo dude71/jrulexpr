@@ -8,6 +8,11 @@ mvn install:install-file -Dfile=src/main/resources/org.openhab.automation.jrule-
 
 mvn assembly:single (target/jrule-eval...jar-with-dependencies.jar)
 
+OR
+
+mvn clean package -DskipTests
+scp target/jrulexpr-1.0-SNAPSHOT.jar root@hub.ha:/tmp/jrulexpr/lib/
+
 # deps seperate:
 mvn dependency:copy-dependencies
 scp target/dependency/* openhab@hub.ha:/opt/oh/conf/automation/jrule/ext-lib

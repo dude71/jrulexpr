@@ -93,7 +93,7 @@ public class JrxExpressionTest {
     public void lazyEvaluation() throws Exception {
         getMockedItem("NR_A", CoreItemFactory.NUMBER, "1");
         getMockedItem("NR_B", CoreItemFactory.NUMBER, "2");
-        Item itm = getMockedItem("NR_C", CoreItemFactory.NUMBER, "0", "jrx=NR_A == 0 && NR_B == 2");
+        Item itm = getMockedItem("NR_C", CoreItemFactory.NUMBER, "0", "jrx=NR_A == 0 && HOUR() > 0 && NR_B == 2");
         JrxExpression jrxExpression = new JrxExpressionForTest(itm.getName(), itemRegistry); 
         assertFalse(jrxExpression.evaluate().getBooleanValue());       
     }
