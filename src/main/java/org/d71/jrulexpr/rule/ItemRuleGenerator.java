@@ -1,13 +1,11 @@
 package org.d71.jrulexpr.rule;
 
-import static org.d71.jrulexpr.expression.ItemExpressionType.JRX;
-import static org.d71.jrulexpr.expression.ItemExpressionType.JRXP;
-
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.burningwave.core.classes.AnnotationSourceGenerator;
 import org.burningwave.core.classes.ClassSourceGenerator;
@@ -15,19 +13,15 @@ import org.burningwave.core.classes.FunctionSourceGenerator;
 import org.burningwave.core.classes.TypeDeclarationSourceGenerator;
 import org.burningwave.core.classes.UnitSourceGenerator;
 import org.burningwave.core.classes.VariableSourceGenerator;
-import org.d71.jrulexpr.expression.IItemExpression;
-import org.d71.jrulexpr.expression.ItemExpressionFactory;
+import org.d71.jrulexpr.item.JrxItem;
 import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
 import org.openhab.automation.jrule.rules.JRuleName;
 import org.openhab.automation.jrule.rules.JRuleWhenCronTrigger;
 import org.openhab.automation.jrule.rules.JRuleWhenItemChange;
 import org.openhab.automation.jrule.rules.event.JRuleEvent;
 import org.openhab.core.items.Item;
-import org.openhab.core.items.ItemRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.ezylang.evalex.data.EvaluationValue;
 
 public class ItemRuleGenerator {
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemRuleGenerator.class);
@@ -45,7 +39,7 @@ public class ItemRuleGenerator {
     public ItemRuleGenerator() {
     }
 
-    public void generate(Item item) {
+    public void generate(JrxItem item) {
         LOGGER.info("Generate rule for: " + item.getName() + " (" + item.getType() + ")");
         try {
             ClassSourceGenerator classSG = classes.get(item.getType());
@@ -72,24 +66,18 @@ public class ItemRuleGenerator {
         });
     }
 
-    private ClassSourceGenerator createClass(Item item) {
+    private ClassSourceGenerator createClass(JrxItem item) {
         String name = item.getType() + "Rules";
         LOGGER.info("Creating new class: " + name);
         ClassSourceGenerator classSourceGenerator = ClassSourceGenerator
                 .create(TypeDeclarationSourceGenerator.create(name))
                 .addModifier(Modifier.PUBLIC)
                 .addOuterCodeLine(createImport(List.class))
-                .addOuterCodeLine(createImport(RuleUtil.class))
-                .addOuterCodeLine(createImport(Item.class))
                 .addOuterCodeLine(createImport(JRuleEventHandler.class))
                 .addOuterCodeLine(createImport(LoggerFactory.class))
-                .addOuterCodeLine(createImport(ItemRuleGenerator.class))
-                .addOuterCodeLine(createImport(ItemCommandor.class))
-                .addOuterCodeLine(createImport(EvaluationValue.class) + ";\n")
                 .addField(createVar(Logger.class, "LOGGER", "LoggerFactory.getLogger(" + name + ".class)")
                         .addModifier(Modifier.FINAL)
                         .addModifier(Modifier.STATIC))
-                .addField(createVar(ItemRegistry.class, "itemRegistry", "JRuleEventHandler.get().getItemRegistry()"))
                 .addModifier(Modifier.FINAL)
                 .expands(JrxRule.class);
         return classSourceGenerator;
@@ -99,9 +87,9 @@ public class ItemRuleGenerator {
         return "import " + clz.getName() + ";";
     }
 
-    private FunctionSourceGenerator createMethod(ClassSourceGenerator classSG, Item item) {
+    private FunctionSourceGenerator createMethod(ClassSourceGenerator classSG, JrxItem item) {
         LOGGER.debug("Creating JRule method for: " + item.getName());
-        String methodName = RuleUtil.getMethodName(item);
+        String methodName = item.getRuleMethodName();
         return FunctionSourceGenerator.create(methodName)
                 .addModifier(Modifier.PUBLIC)
                 .addAnnotation(AnnotationSourceGenerator
@@ -113,48 +101,31 @@ public class ItemRuleGenerator {
                 .setReturnType(void.class);
     }
 
-    private void createMethodAnnotations(FunctionSourceGenerator method, Item item) throws Exception {
+    private void createMethodAnnotations(FunctionSourceGenerator method, JrxItem item) throws Exception {
         LOGGER.debug("Creating method annotations for jrx");
 
-        IItemExpression itemXpr = ItemExpressionFactory.getItemExpression(JRX, item.getName());
-        Set<Item> items = itemXpr.getXprItems();
-
-        if (LOGGER.isTraceEnabled()) {
-            items.forEach(i -> LOGGER.trace("itm: " + i));
-        }
-
-        items.addAll(ItemExpressionFactory.getItemExpression(JRXP, item.getName()).getXprItems());
+        Set<Item> items = item.getTriggeringItems();
 
         items.stream().filter(i -> i != item).forEach(i -> method.addAnnotation(
                 AnnotationSourceGenerator
                         .create(JRuleWhenItemChange.class)
                         .addParameter("item", VariableSourceGenerator.create("\"" + i.getName() + "\""))));
 
-        Set<String> udFunctions = itemXpr.getXprFunctions();
+        item.getFunctions().stream()
+                .filter(f -> f.getCronExpression() != null)
+                .collect(Collectors.toSet()).forEach(f -> {
+                    method.addAnnotation(AnnotationSourceGenerator
+                            .create(JRuleWhenCronTrigger.class)
+                            .addParameter("cron", VariableSourceGenerator.create(f.getCronExpression())));
 
-        if (LOGGER.isTraceEnabled()) {
-            udFunctions.forEach(f -> LOGGER.trace("fnc: " + f));
-        }        
-
-        if (udFunctions.contains("HOUR")) {
-            method.addAnnotation(AnnotationSourceGenerator
-                    .create(JRuleWhenCronTrigger.class)
-                    .addParameter("cron", VariableSourceGenerator.create("\"0 0 * * * *\"")));
-        }
-
-        if (udFunctions.contains("HOST")) {
-            method.addAnnotation(AnnotationSourceGenerator
-                    .create(JRuleWhenCronTrigger.class)
-                    .addParameter("cron", VariableSourceGenerator.create("\"0 0/5 * * * *\"")));
-        }
-
+                });
     }
 
     private VariableSourceGenerator createVar(Class<?> clz, String name, String valAsStr) {
         return VariableSourceGenerator.create(clz, name).setValue(valAsStr).addModifier(Modifier.PRIVATE);
     }
 
-    private void createMethodBody(FunctionSourceGenerator method, Item item) {
+    private void createMethodBody(FunctionSourceGenerator method, JrxItem item) {
         method.addBodyCode("execRule(\"" + item.getName() + "\", event);")
                 .addThrowable(TypeDeclarationSourceGenerator.create(Exception.class));
     }

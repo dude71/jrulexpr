@@ -1,4 +1,4 @@
-package org.d71.jrulexpr.rule.functions;
+package org.d71.jrulexpr.function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,14 +11,24 @@ import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 
 @FunctionParameter(name = "hostOrIp")
-public class HostFunction extends AbstractFunction {
+public class HostFunction extends AbstractFunction implements JrxFunction<Boolean> {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
+
+    @Override
+    public final String getToken() {
+        return "HOST";
+    }
+
+    @Override
+    public Boolean getValue(Object... parameters) {
+        return hostReachable((String)parameters[0]);
+    }
 
     @Override
     public EvaluationValue evaluate(Expression expression, Token token, EvaluationValue... parameterValues)
             throws EvaluationException {
         String hostOrIp = parameterValues[0].getStringValue();
-        return EvaluationValue.booleanValue(hostReachable(hostOrIp));
+        return EvaluationValue.booleanValue(getValue(hostOrIp));
     }
 
     private boolean hostReachable(String hostOrIp) {

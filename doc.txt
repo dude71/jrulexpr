@@ -17,6 +17,29 @@ scp target/jrulexpr-1.0-SNAPSHOT.jar root@hub.ha:/tmp/jrulexpr/lib/
 mvn dependency:copy-dependencies
 scp target/dependency/* openhab@hub.ha:/opt/oh/conf/automation/jrule/ext-lib
 
+# loading by openhab
+
+in /opt/oh/conf/automation/jrule/rules/org/openhab/automation/jrule/rules/user
+add:
+
+public class JRuleXprLoader extends JRule {
+    private static boolean loaded = false;
+
+    static {
+        System.out.println("JRuleXpr loading..");
+        load();
+    }
+
+    private synchronized static void load() {
+        if (!loaded) {
+            JRuleXpr.getInstance().generateItemRules();
+            loaded = true;
+            JRuleXpr.getInstance().unload();
+        } 
+    } 
+}
+
+
 JRuleXpr
 jrulexpr
 
@@ -37,3 +60,35 @@ jrx="NR_LIGHTING_NEED || (NR_IS_DARK && NR_FRONTGARDEN_MOTION)"
 jrvt="IF(NR_KITCHEN_MOTION || NR_FRONTGARDEN_MOTION, 90, IF(HOUR() < 20, 85, 70 + (20 - HOUR())))
 
 70+((20-h)*10)
+
+JRuleXpr 
+-> ItemRuleGenerator 
+-> JRuleExpressionFactory(type, xpr)
+    .getExpression (IExpression) .evaluate, .getFunctions, .getItems
+
+jrx, jrxp, jrxt, jrxf
+
+getXpr (item, type) IExpression
+.evaluate
+
+generate phase
+    getJrxItems (all, loop)
+    handleJrxItem
+        jrx, jxrp -> items, functions
+        JrxItem(item)
+            .getItems
+            .getFunctions
+
+execute phase
+    getJrxItem(itemName)
+    execRule
+        jrxp, jrx, jrxt, jrxf -> evaluate
+        IEvaluator
+            .evaluate
+
+
+# TODO
+- setting override
+- send cmd when needed OR force it
+- avoid having to use == \"ON\" -> just == ON
+

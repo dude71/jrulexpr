@@ -1,12 +1,7 @@
 package org.d71.jrulexpr;
 
-import java.util.List;
-
-import org.d71.jrulexpr.item.ItemUtil;
+import org.d71.jrulexpr.item.JrxItemRegistry;
 import org.d71.jrulexpr.rule.ItemRuleGenerator;
-
-import org.openhab.core.items.Item;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +14,7 @@ public class JRuleXpr {
         return instance == null ? (instance = new JRuleXpr()) : instance;
     }
 
+    private JrxItemRegistry itemRegistry = JrxItemRegistry.getInstance();
     private ItemRuleGenerator itemRuleGenerator = new ItemRuleGenerator();
 
     public void unload() {
@@ -29,8 +25,7 @@ public class JRuleXpr {
     public void generateItemRules() {
         LOGGER.info("## Starting JRuleXpr..");
         try {
-            List<Item> jrxItems = ItemUtil.getItemNames();
-            jrxItems.forEach(itemRuleGenerator::generate); 
+            itemRegistry.getItems().forEach(itemRuleGenerator::generate);
             itemRuleGenerator.makeAll();
         } catch (Exception e) {
             LOGGER.error(e.getLocalizedMessage());
