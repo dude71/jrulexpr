@@ -5,8 +5,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import com.ezylang.evalex.functions.FunctionParameter;
 import org.d71.jrulexpr.item.JrxItem;
 import org.d71.jrulexpr.rule.RuleTrigger;
+import org.openhab.automation.jrule.items.JRuleGroupItem;
+import org.openhab.automation.jrule.items.JRuleItem;
 import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
 
 import com.ezylang.evalex.EvaluationException;
@@ -14,9 +17,15 @@ import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.data.EvaluationValue;
 import com.ezylang.evalex.functions.AbstractFunction;
 import com.ezylang.evalex.parser.Token;
+import org.openhab.core.items.Item;
+import org.openhab.core.items.ItemNotFoundException;
+import org.openhab.core.items.ItemRegistry;
 
+@FunctionParameter(name = "group")
 public class GroupFunction extends AbstractFunction implements JrxFunction<Boolean> { // group change triggered
     private JrxItem item;
+
+    private ItemRegistry itemRegistry;
 
     private String groupName;
 
@@ -26,19 +35,24 @@ public class GroupFunction extends AbstractFunction implements JrxFunction<Boole
     }
 
     @Override
+    public void setItemRegistry(ItemRegistry registry) {
+        itemRegistry = registry;
+    }
+
+    @Override
     public Boolean getValue(Object... parameters) {
         if (parameters.length == 0) {
             return false;
         } else {
             String groupName = (String) parameters[0];
             JRuleItemEvent evt = item.getLastTriggeredBy() instanceof JRuleItemEvent ? (JRuleItemEvent) item.getLastTriggeredBy() : null;
-            return evt != null && groupName.equals(evt.getItem().getName());
+            return evt != null && (groupName.equals(evt.getItem().getName()) || triggeringItemInGroup(evt.getItem(), groupName));
         }
     }
 
     @Override
     public EvaluationValue evaluate(Expression expression, Token functionToken, EvaluationValue... parameterValues) throws EvaluationException {
-        Object[] param = parameterValues.length > 0 ? new String[] { parameterValues[0].getStringValue() } : new String[0];
+        Object[] param = parameterValues.length > 0 ? new String[]{parameterValues[0].getStringValue()} : new String[0];
         return EvaluationValue.booleanValue(getValue(param));
     }
 
@@ -50,7 +64,7 @@ public class GroupFunction extends AbstractFunction implements JrxFunction<Boole
     @Override
     public void setParameters(List<Object> values) {
         if (values.size() == 1) {
-            groupName = (String)values.get(0);
+            groupName = (String) values.get(0);
         }
     }
 
@@ -63,5 +77,13 @@ public class GroupFunction extends AbstractFunction implements JrxFunction<Boole
             }
         });
     }
-    
+
+    private boolean triggeringItemInGroup(JRuleItem trItem, String groupName) {
+        try {
+            return itemRegistry.getItem(trItem.getName()).getGroupNames().contains(groupName);
+        } catch (ItemNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

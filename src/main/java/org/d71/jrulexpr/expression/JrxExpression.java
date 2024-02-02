@@ -24,9 +24,9 @@ import com.ezylang.evalex.parser.Token.TokenType;
 public class JrxExpression {
     private final static ItemTypeValueConverter converter = ItemTypeValueConverter.getInstance();
 
-    private final ItemRegistry itemRegistry;
+    final ItemRegistry itemRegistry;
 
-    private final JrxFunctionRegistry functionRegistry;
+    final JrxFunctionRegistry functionRegistry;
 
     private final String xpr;
 

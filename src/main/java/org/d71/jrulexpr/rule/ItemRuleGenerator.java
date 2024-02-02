@@ -1,11 +1,8 @@
 package org.d71.jrulexpr.rule;
 
 import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.burningwave.core.classes.AnnotationSourceGenerator;
@@ -17,9 +14,7 @@ import org.burningwave.core.classes.VariableSourceGenerator;
 import org.d71.jrulexpr.function.JrxFunction;
 import org.d71.jrulexpr.item.JrxItem;
 import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
-import org.openhab.automation.jrule.rules.JRuleName;
-import org.openhab.automation.jrule.rules.JRuleWhenCronTrigger;
-import org.openhab.automation.jrule.rules.JRuleWhenItemChange;
+import org.openhab.automation.jrule.rules.*;
 import org.openhab.automation.jrule.rules.event.JRuleEvent;
 import org.openhab.core.items.Item;
 import org.slf4j.Logger;
@@ -75,8 +70,10 @@ public class ItemRuleGenerator {
                 .create(TypeDeclarationSourceGenerator.create(name))
                 .addModifier(Modifier.PUBLIC)
                 .addOuterCodeLine(createImport(List.class))
+                .addOuterCodeLine(createImport(JRuleMemberOf.class))
                 .addOuterCodeLine(createImport(JRuleEventHandler.class))
                 .addOuterCodeLine(createImport(LoggerFactory.class))
+                .addOuterCodeLine("\n")
                 .addField(createVar(Logger.class, "LOGGER", "LoggerFactory.getLogger(" + name + ".class)")
                         .addModifier(Modifier.FINAL)
                         .addModifier(Modifier.STATIC))
@@ -116,22 +113,26 @@ public class ItemRuleGenerator {
         item.getFunctions().stream()
                 .map(JrxFunction::getRuleTrigger)
                 .flatMap(Optional::stream)
-                .filter(t -> t.getCronExpression() != null)
-                .collect(Collectors.toSet()).forEach(t -> {
+                .map(RuleTrigger::getCronExpression)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()).forEach(c -> {
                     method.addAnnotation(AnnotationSourceGenerator
                             .create(JRuleWhenCronTrigger.class)
-                            .addParameter("cron", VariableSourceGenerator.create(t.getCronExpression())));
-
+                            .addParameter("cron", VariableSourceGenerator.create(c)));
                 });
 
         item.getFunctions().stream()
                 .map(JrxFunction::getRuleTrigger)
                 .flatMap(Optional::stream)
                 .map(RuleTrigger::getGroups)
+                .filter(Predicate.not(Set::isEmpty))
+                .flatMap(Collection::stream)
                 .forEach(g -> {
                     method.addAnnotation(AnnotationSourceGenerator
-                        .create(JRuleWhenItemChange.class)
-                        .addParameter("group", VariableSourceGenerator.create("\"" + g + "\"")));
+                            .create(JRuleWhenItemReceivedUpdate.class)
+                            .addParameter("item", VariableSourceGenerator.create("\"" + g + "\""))
+                            .addParameter("memberOf", VariableSourceGenerator.create("JRuleMemberOf.All"))
+                    );
                 });
 
     }

@@ -25,6 +25,7 @@ public abstract class AbstractJrxItemExpression extends JrxExpression {
     @Override
     public JrxFunction<? extends Object> prepareFunctionInstance(JrxFunction<? extends Object> f) {
         f.setItem(item);
+        f.setItemRegistry(itemRegistry);
         return super.prepareFunctionInstance(f);
     }
 

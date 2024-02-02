@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.d71.jrulexpr.item.JrxItem;
+import org.d71.jrulexpr.item.JrxItemRegistry;
 import org.d71.jrulexpr.rule.RuleTrigger;
+import org.openhab.core.items.ItemRegistry;
 
 public interface JrxFunction<V> {
     String getToken();
@@ -15,6 +17,9 @@ public interface JrxFunction<V> {
     }
 
     default void setItem(JrxItem item) {    
+    }
+
+    default void setItemRegistry(ItemRegistry registry) {
     }
 
     default void setParameters(List<Object> values) {
