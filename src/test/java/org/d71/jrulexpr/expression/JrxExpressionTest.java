@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 
+import org.d71.jrulexpr.function.HourFunction;
 import org.junit.jupiter.api.Test;
 
 public class JrxExpressionTest extends AbstractJrxExpressionTest {
@@ -38,7 +39,7 @@ public class JrxExpressionTest extends AbstractJrxExpressionTest {
     @Test
     public void getFunctionInstancesSome() {
         // SUT
-        jrxExpression = new JrxExpression("item1 + HOUR() + HOUR() && HOST('localhost')", itemRegistry, functionRegistry);
+        jrxExpression = new JrxExpression("item1 + HOUR() + HOUR() && HOST(\"localhost\")", itemRegistry, functionRegistry);
 
         assertEquals(2, jrxExpression.getFunctionInstances().size());
     }
@@ -62,5 +63,12 @@ public class JrxExpressionTest extends AbstractJrxExpressionTest {
         jrxExpression = createJrxExpression("nItem1 + nItem2");
 
         assertEquals(30, ((BigDecimal)jrxExpression.evaluate()).intValue());
+    }
+
+    @Test
+    public void evaluateNumberFunctions() {
+        jrxExpression = createJrxExpression("HOUR() + HOUR()");
+
+        assertEquals((new HourFunction()).getValue().intValue(), ((BigDecimal)jrxExpression.evaluate()).intValue() / 2);
     }
 }

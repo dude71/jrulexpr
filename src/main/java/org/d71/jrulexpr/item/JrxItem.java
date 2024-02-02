@@ -6,12 +6,12 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.text.CaseUtils;
-import org.d71.jrulexpr.expression.AbstractJrxItemExpression;
 import org.d71.jrulexpr.expression.JrxItemExpression;
 import org.d71.jrulexpr.expression.JrxfItemExpression;
 import org.d71.jrulexpr.expression.JrxpItemExpression;
 import org.d71.jrulexpr.expression.JrxtItemExpression;
 import org.d71.jrulexpr.function.JrxFunction;
+import org.openhab.automation.jrule.rules.event.JRuleEvent;
 import org.openhab.core.items.Item;
 import org.openhab.core.library.CoreItemFactory;
 import org.openhab.core.library.items.DimmerItem;
@@ -29,7 +29,7 @@ public class JrxItem {
 
     private final Item item;
 
-    private String lastTriggeredBy;
+    private JRuleEvent lastTriggeredBy;
 
     protected JrxItem(Item item) {
         this.item = item;
@@ -43,11 +43,11 @@ public class JrxItem {
         return item.getType();
     }
 
-    public void setLastTriggeredBy(String by) {
-        this.lastTriggeredBy = by;
+    public void setLastTriggeredBy(JRuleEvent event) {
+        this.lastTriggeredBy = event;
     }
 
-    public String getLastTriggeredBy() {
+    public JRuleEvent getLastTriggeredBy() {
         return lastTriggeredBy;
     }
 

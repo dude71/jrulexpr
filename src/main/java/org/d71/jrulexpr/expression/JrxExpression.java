@@ -1,6 +1,7 @@
 package org.d71.jrulexpr.expression;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -49,13 +50,35 @@ public class JrxExpression {
                 .collect(Collectors.toSet());
     }
 
-    public Set<JrxFunction<?>> getFunctionInstances() {
+    private Set<JrxFunction<?>> _getFunctionInstances() {
         return xpr == null ? Collections.emptySet()
                 : functionRegistry.getFunctionTokens().stream()
                         .filter(f -> xpr.contains(f))
                         .map(functionRegistry::getFunctionInstance)
                         .map(this::prepareFunctionInstance)
                         .collect(Collectors.toSet());
+    }
+
+    public List<JrxFunction<?>> getFunctionInstances() {
+        Optional<Expression> optXpr = getExpression();
+        try {
+            return optXpr.isPresent() ? optXpr.get().getAllASTNodes().stream()
+                .filter(n -> n.getToken().getType() == TokenType.FUNCTION)
+                .filter(n -> functionRegistry.isRegistered(n.getToken().getValue()))
+                .map(n -> { 
+                    JrxFunction<?> f = functionRegistry.getFunctionInstance(n.getToken().getValue());
+                    f.setParameters(n.getParameters().stream()
+                        .filter(p -> p.getToken().getType() == TokenType.STRING_LITERAL)
+                        .map(p -> p.getToken().getValue())
+                        .collect(Collectors.toList())
+                    ); // TODO other types of param
+                    prepareFunctionInstance(f);
+                    return f;
+                })
+                .collect(Collectors.toList()) : Collections.emptyList();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Set<String> getFunctionTokens() {
@@ -104,7 +127,7 @@ public class JrxExpression {
 
     @SuppressWarnings("unchecked")
     private Entry<String, FunctionIfc>[] getFunctionInstanceEntries() {
-        return getFunctionInstances().stream()
+        return _getFunctionInstances().stream()
                 .filter(f -> f instanceof FunctionIfc)
                 .map(f -> Map.entry(f.getToken(), FunctionIfc.class.cast(f)))
                 .toArray(size -> new Map.Entry[size]);

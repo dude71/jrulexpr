@@ -2,6 +2,9 @@ package org.d71.jrulexpr.function;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import java.util.Optional;
+
+import org.d71.jrulexpr.rule.RuleTrigger;
 
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.data.EvaluationValue;
@@ -16,13 +19,17 @@ public class HourFunction extends AbstractFunction implements JrxFunction<BigDec
     }
 
     @Override
-    public BigDecimal getValue(Object... parameters) {
-        return BigDecimal.valueOf(LocalTime.now().getHour());   
+    public Optional<RuleTrigger> getRuleTrigger() {
+        return Optional.of(new RuleTrigger() {
+            public String getCronExpression() {
+                return "\"0 0 * * * *\"";
+            }
+        });
     }
 
     @Override
-    public String getCronExpression() {
-        return "\"0 0 * * * *\"";
+    public BigDecimal getValue(Object... parameters) {
+        return BigDecimal.valueOf(LocalTime.now().getHour());   
     }
 
     @Override

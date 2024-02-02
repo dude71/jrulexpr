@@ -4,6 +4,7 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -13,6 +14,7 @@ import org.burningwave.core.classes.FunctionSourceGenerator;
 import org.burningwave.core.classes.TypeDeclarationSourceGenerator;
 import org.burningwave.core.classes.UnitSourceGenerator;
 import org.burningwave.core.classes.VariableSourceGenerator;
+import org.d71.jrulexpr.function.JrxFunction;
 import org.d71.jrulexpr.item.JrxItem;
 import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
 import org.openhab.automation.jrule.rules.JRuleName;
@@ -112,13 +114,26 @@ public class ItemRuleGenerator {
                         .addParameter("item", VariableSourceGenerator.create("\"" + i.getName() + "\""))));
 
         item.getFunctions().stream()
-                .filter(f -> f.getCronExpression() != null)
-                .collect(Collectors.toSet()).forEach(f -> {
+                .map(JrxFunction::getRuleTrigger)
+                .flatMap(Optional::stream)
+                .filter(t -> t.getCronExpression() != null)
+                .collect(Collectors.toSet()).forEach(t -> {
                     method.addAnnotation(AnnotationSourceGenerator
                             .create(JRuleWhenCronTrigger.class)
-                            .addParameter("cron", VariableSourceGenerator.create(f.getCronExpression())));
+                            .addParameter("cron", VariableSourceGenerator.create(t.getCronExpression())));
 
                 });
+
+        item.getFunctions().stream()
+                .map(JrxFunction::getRuleTrigger)
+                .flatMap(Optional::stream)
+                .map(RuleTrigger::getGroups)
+                .forEach(g -> {
+                    method.addAnnotation(AnnotationSourceGenerator
+                        .create(JRuleWhenItemChange.class)
+                        .addParameter("group", VariableSourceGenerator.create("\"" + g + "\"")));
+                });
+
     }
 
     private VariableSourceGenerator createVar(Class<?> clz, String name, String valAsStr) {
