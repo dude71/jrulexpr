@@ -27,9 +27,13 @@ public class GroupFunction extends AbstractFunction implements JrxFunction<Boole
 
     @Override
     public Boolean getValue(Object... parameters) {
-        String groupName = (String)parameters[0];
-        JRuleItemEvent evt = item.getLastTriggeredBy() instanceof JRuleItemEvent ? (JRuleItemEvent)item.getLastTriggeredBy() : null;
-        return evt != null && groupName.equals(evt.getItem().getName()); 
+        if (parameters.length == 0) {
+            return false;
+        } else {
+            String groupName = (String) parameters[0];
+            JRuleItemEvent evt = item.getLastTriggeredBy() instanceof JRuleItemEvent ? (JRuleItemEvent) item.getLastTriggeredBy() : null;
+            return evt != null && groupName.equals(evt.getItem().getName());
+        }
     }
 
     @Override
@@ -45,7 +49,9 @@ public class GroupFunction extends AbstractFunction implements JrxFunction<Boole
 
     @Override
     public void setParameters(List<Object> values) {
-        if (values.size() == 1) groupName = (String)values.get(0);
+        if (values.size() == 1) {
+            groupName = (String)values.get(0);
+        }
     }
 
     @Override

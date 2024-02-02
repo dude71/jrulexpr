@@ -50,15 +50,6 @@ public class JrxExpression {
                 .collect(Collectors.toSet());
     }
 
-    private Set<JrxFunction<?>> _getFunctionInstances() {
-        return xpr == null ? Collections.emptySet()
-                : functionRegistry.getFunctionTokens().stream()
-                        .filter(f -> xpr.contains(f))
-                        .map(functionRegistry::getFunctionInstance)
-                        .map(this::prepareFunctionInstance)
-                        .collect(Collectors.toSet());
-    }
-
     public List<JrxFunction<?>> getFunctionInstances() {
         Optional<Expression> optXpr = getExpression();
         try {
@@ -68,10 +59,9 @@ public class JrxExpression {
                 .map(n -> { 
                     JrxFunction<?> f = functionRegistry.getFunctionInstance(n.getToken().getValue());
                     f.setParameters(n.getParameters().stream()
-                        .filter(p -> p.getToken().getType() == TokenType.STRING_LITERAL)
                         .map(p -> p.getToken().getValue())
                         .collect(Collectors.toList())
-                    ); // TODO other types of param
+                    );
                     prepareFunctionInstance(f);
                     return f;
                 })
@@ -125,9 +115,18 @@ public class JrxExpression {
         return f;
     }
 
+
+    private Set<JrxFunction<?>> getUniqFunctionInstances() {
+        return xpr == null ? Collections.emptySet()
+                : functionRegistry.getFunctionTokens().stream()
+                .filter(f -> xpr.contains(f))
+                .map(functionRegistry::getFunctionInstance)
+                .map(this::prepareFunctionInstance)
+                .collect(Collectors.toSet());
+    }
     @SuppressWarnings("unchecked")
     private Entry<String, FunctionIfc>[] getFunctionInstanceEntries() {
-        return _getFunctionInstances().stream()
+        return getUniqFunctionInstances().stream()
                 .filter(f -> f instanceof FunctionIfc)
                 .map(f -> Map.entry(f.getToken(), FunctionIfc.class.cast(f)))
                 .toArray(size -> new Map.Entry[size]);

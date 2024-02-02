@@ -41,7 +41,7 @@ public class JrxExpressionTest extends AbstractJrxExpressionTest {
         // SUT
         jrxExpression = new JrxExpression("item1 + HOUR() + HOUR() && HOST(\"localhost\")", itemRegistry, functionRegistry);
 
-        assertEquals(2, jrxExpression.getFunctionInstances().size());
+        assertEquals(3, jrxExpression.getFunctionInstances().size());
     }
 
     @Test

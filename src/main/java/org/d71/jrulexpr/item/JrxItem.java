@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.List;
 
 import org.apache.commons.text.CaseUtils;
 import org.d71.jrulexpr.expression.JrxItemExpression;
@@ -12,6 +13,7 @@ import org.d71.jrulexpr.expression.JrxpItemExpression;
 import org.d71.jrulexpr.expression.JrxtItemExpression;
 import org.d71.jrulexpr.function.JrxFunction;
 import org.openhab.automation.jrule.rules.event.JRuleEvent;
+import org.openhab.core.items.GroupItem;
 import org.openhab.core.items.Item;
 import org.openhab.core.library.CoreItemFactory;
 import org.openhab.core.library.items.DimmerItem;
@@ -33,6 +35,10 @@ public class JrxItem {
 
     protected JrxItem(Item item) {
         this.item = item;
+    }
+
+    protected List<String> getGroupNames() {
+        return item.getGroupNames();
     }
 
     public String getName() {

@@ -36,10 +36,6 @@ public class JrxItemExpressionTest extends AbstractJrxExpressionTest {
         assertNotEquals(item.getState(), item.evaluateNewState().get());
     }
 
-    private JrxItem createJrxItem(String name, String type, String value, String... tags) {
-        return toJrxItem(createMockedItem(name, type, value, tags));
-    }
-
     private JrxItemExpression createJrxItemExpression(JrxItem item) {
         return new JrxItemExpression(item, itemRegistry, functionRegistry) ;
     }

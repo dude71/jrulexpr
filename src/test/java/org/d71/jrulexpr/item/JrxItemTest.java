@@ -4,10 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.d71.jrulexpr.expression.AbstractJrxExpressionTest;
-import org.d71.jrulexpr.expression.JrxItemExpression;
-import org.d71.jrulexpr.expression.JrxfItemExpression;
-import org.d71.jrulexpr.expression.JrxpItemExpression;
-import org.d71.jrulexpr.expression.JrxtItemExpression;
 import org.d71.jrulexpr.function.JrxFunctionRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,31 +25,6 @@ public class JrxItemTest extends AbstractJrxExpressionTest {
     @Mock
     private Item itm;
 
-    // SUT
-    private JrxItem createItem(Item item) {
-        return new JrxItem(item) {
-            @Override
-            protected JrxItemExpression createJrxItemExpression() {
-                return new JrxItemExpression(this, itemRegistry, functionRegistry);
-            }
-
-            @Override
-            protected JrxfItemExpression createJrxfItemExpression() {
-                return new JrxfItemExpression(this, itemRegistry, functionRegistry);
-            }
-
-            @Override
-            protected JrxpItemExpression createJrxpItemExpression() {
-                return new JrxpItemExpression(this, itemRegistry, functionRegistry);
-            }
-
-            @Override
-            protected JrxtItemExpression createJrxtItemExpression() {
-                return new JrxtItemExpression(this, itemRegistry, functionRegistry);
-            }
-        };
-    }
-
     @BeforeEach
     @Override
     public void init() {
@@ -61,13 +32,13 @@ public class JrxItemTest extends AbstractJrxExpressionTest {
 
     @Test
     public void getJrxExisting() {
-        JrxItem itm = createItem(createMockedItem("A", CoreItemFactory.NUMBER, "1", "jrx=1 > 2"));
+        JrxItem itm = createJrxItem("A", CoreItemFactory.NUMBER, "1", "jrx=1 > 2");
         assertEquals("1 > 2", itm.getJrx());
     }
 
     @Test
     public void getJrxNonExisting() {
-        JrxItem itm = createItem(createMockedItem("A", CoreItemFactory.NUMBER, "1"));
+        JrxItem itm = createJrxItem("A", CoreItemFactory.NUMBER, "1");
         assertNull(itm.getJrx());
     }
 
