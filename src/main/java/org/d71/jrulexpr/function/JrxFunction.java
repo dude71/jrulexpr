@@ -1,11 +1,9 @@
 package org.d71.jrulexpr.function;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 import org.d71.jrulexpr.item.JrxItem;
-import org.d71.jrulexpr.item.JrxItemRegistry;
 import org.d71.jrulexpr.rule.RuleTrigger;
 import org.openhab.core.items.ItemRegistry;
 
