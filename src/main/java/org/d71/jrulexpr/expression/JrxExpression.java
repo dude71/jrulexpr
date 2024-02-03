@@ -124,6 +124,7 @@ public class JrxExpression {
                 .map(this::prepareFunctionInstance)
                 .collect(Collectors.toSet());
     }
+    
     @SuppressWarnings("unchecked")
     private Entry<String, FunctionIfc>[] getFunctionInstanceEntries() {
         return getUniqFunctionInstances().stream()

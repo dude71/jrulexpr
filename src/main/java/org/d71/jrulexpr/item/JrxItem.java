@@ -1,6 +1,11 @@
 package org.d71.jrulexpr.item;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -16,9 +21,11 @@ import org.openhab.automation.jrule.rules.event.JRuleEvent;
 import org.openhab.core.items.GroupItem;
 import org.openhab.core.items.Item;
 import org.openhab.core.library.CoreItemFactory;
+import org.openhab.core.library.items.DateTimeItem;
 import org.openhab.core.library.items.DimmerItem;
 import org.openhab.core.library.items.NumberItem;
 import org.openhab.core.library.items.SwitchItem;
+import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
@@ -147,6 +154,10 @@ public class JrxItem {
                 ((NumberItem) item).send((DecimalType) state);
             } else if (item instanceof SwitchItem) {
                 ((SwitchItem) item).send((OnOffType) state);
+            } else if (item instanceof DateTimeItem) {
+                ((DateTimeItem) item).send((DateTimeType) state);
+            } else {
+                LOGGER.warn("cannot convert {}!", new Object[] { state } );
             }
         } else {
             LOGGER.info("skipping send on {} curr={} old={}", new Object[] { getName(), curr, state });
@@ -181,6 +192,8 @@ public class JrxItem {
             rv = DecimalType.valueOf(String.valueOf(state));
         } else if (item.getType().equals(CoreItemFactory.SWITCH)) {
             rv = String.valueOf(state).equals("ON") ? OnOffType.ON : OnOffType.OFF;
+        } else if (item.getType().equals(CoreItemFactory.DATETIME)) {
+            rv = new DateTimeType(ZonedDateTime.ofInstant(Instant.ofEpochMilli(((BigDecimal)state).longValue()), ZoneId.systemDefault()));
         } else {
             LOGGER.warn("Cannot convert state " + state + "!");
         }
