@@ -32,13 +32,13 @@ public class JrxItemTest extends AbstractJrxExpressionTest {
 
     @Test
     public void getJrxExisting() {
-        JrxItem itm = createJrxItem("A", CoreItemFactory.NUMBER, "1", "jrx=1 > 2");
+        JrxItem itm = createMockedItem("A", CoreItemFactory.NUMBER, "1", "jrx=1 > 2");
         assertEquals("1 > 2", itm.getJrx());
     }
 
     @Test
     public void getJrxNonExisting() {
-        JrxItem itm = createJrxItem("A", CoreItemFactory.NUMBER, "1");
+        JrxItem itm = createMockedItem("A", CoreItemFactory.NUMBER, "1");
         assertNull(itm.getJrx());
     }
 

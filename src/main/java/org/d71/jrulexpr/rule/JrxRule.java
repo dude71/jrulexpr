@@ -28,7 +28,7 @@ public class JrxRule extends JRule {
             String methodName = item.getRuleMethodName();
             LOGGER.info(">> {} triggered by {}", new Object[] {methodName, eventInfo(event)});
             
-            item.evaluateNewState().ifPresent(item::send);
+            item.evaluateNewValue().ifPresent(item::send);
         } catch (Exception e) {
             LOGGER.error("ERROR: ", e);
         }

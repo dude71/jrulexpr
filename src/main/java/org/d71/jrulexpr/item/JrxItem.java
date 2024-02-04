@@ -1,9 +1,5 @@
 package org.d71.jrulexpr.item;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -15,34 +11,27 @@ import org.d71.jrulexpr.expression.JrxfItemExpression;
 import org.d71.jrulexpr.expression.JrxpItemExpression;
 import org.d71.jrulexpr.expression.JrxtItemExpression;
 import org.d71.jrulexpr.function.JrxFunction;
+import org.openhab.automation.jrule.items.JRuleItem;
 import org.openhab.automation.jrule.rules.event.JRuleEvent;
-import org.openhab.core.items.Item;
-import org.openhab.core.library.CoreItemFactory;
-import org.openhab.core.library.items.DateTimeItem;
-import org.openhab.core.library.items.DimmerItem;
-import org.openhab.core.library.items.NumberItem;
-import org.openhab.core.library.items.SwitchItem;
-import org.openhab.core.library.types.DateTimeType;
-import org.openhab.core.library.types.DecimalType;
-import org.openhab.core.library.types.OnOffType;
-import org.openhab.core.library.types.PercentType;
-import org.openhab.core.types.State;
+import org.openhab.automation.jrule.rules.value.JRuleValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class JrxItem {
     private static final Logger LOGGER = LoggerFactory.getLogger(JrxItem.class);
 
-    private final Item item;
+    private final JRuleItem item;
 
     private JRuleEvent lastTriggeredBy;
 
-    protected JrxItem(Item item) {
+    protected JrxItem(JRuleItem item) {
         this.item = item;
     }
 
-    protected List<String> getGroupNames() {
-        return item.getGroupNames();
+    public List<String> getGroupNames() {
+        // JRuleItem.getGroupItems throws JRuleItemNotFoundException when group not
+        // defined as Group item in OH!
+        return JrxItemRegistry.getGroupNames(this);
     }
 
     public String getName() {
@@ -51,6 +40,10 @@ public class JrxItem {
 
     public String getType() {
         return item.getType();
+    }
+
+    public List<String> getTags() {
+        return item.getTags();
     }
 
     public void setLastTriggeredBy(JRuleEvent event) {
@@ -69,14 +62,14 @@ public class JrxItem {
         return functions;
     }
 
-    public Set<Item> getTriggeringItems() {
-        Set<Item> items = new HashSet<>(createJrxItemExpression().getItems());
+    public Set<JrxItem> getTriggeringItems() {
+        Set<JrxItem> items = new HashSet<>(createJrxItemExpression().getItems());
         items.addAll(createJrxpItemExpression().getItems());
         return items;
     }
 
-    public Set<Item> getItems() {
-        Set<Item> items = getTriggeringItems();
+    public Set<JrxItem> getItems() {
+        Set<JrxItem> items = getTriggeringItems();
         items.addAll(createJrxtItemExpression().getItems());
         items.addAll(createJrxfItemExpression().getItems());
         return items;
@@ -110,54 +103,44 @@ public class JrxItem {
         return jrxEval;
     }
 
-    public State evaluateJrxf() {
+    public JRuleValue evaluateJrxf() {
         Object eval = createJrxfItemExpression().evaluate();
         LOGGER.debug("eval {} jrxf {} -> {}", new Object[] { getName(), getJrxf(), eval });
-        return toState(eval);        
+        return ValueConverter.convertToValue(eval, getType());
     }
 
-    public State evaluateJrxt() {
+    public JRuleValue evaluateJrxt() {
         Object eval = createJrxtItemExpression().evaluate();
         LOGGER.debug("eval {} jrxt {} -> {}", new Object[] { getName(), getJrxt(), eval });
-        return toState(eval);        
+        return ValueConverter.convertToValue(eval, getType());
     }
 
-    public Optional<State> evaluateNewState() {
-        Optional<State> state;
+    public Optional<JRuleValue> evaluateNewValue() {
+        Optional<JRuleValue> value;
         String methodName = getRuleMethodName();
 
         if (evaluateJrxp()) {
-            return Optional.of(evaluateJrx() ? evaluateJrxt() : evaluateJrxf());
+            value = Optional.of(evaluateJrx() ? evaluateJrxt() : evaluateJrxf());
         } else {
-            state = Optional.empty();
+            value = Optional.empty();
             LOGGER.debug("-- pre condition {} NOT met for {}", new Object[] { getJrxp(), methodName });
         }
-        return state;
+        return value;
     }
 
-    public State getState() {
+    public JRuleValue getState() {
         return item.getState();
     }
 
-    public void send(State state) {
-        LOGGER.info("Command {} for item {} ({})", new Object[] { state, item.getName(), item.getType() });
+    public void send(JRuleValue value) {
+        LOGGER.info("Command {} for item {} ({})", new Object[] { value, item.getName(), item.getType() });
 
-        State curr = getState();
+        JRuleValue curr = getState();
 
-        if (curr == null || !curr.equals(state)) {
-            if (item instanceof DimmerItem) {
-                ((DimmerItem) item).send((PercentType) state);
-            } else if (item instanceof NumberItem) {
-                ((NumberItem) item).send((DecimalType) state);
-            } else if (item instanceof SwitchItem) {
-                ((SwitchItem) item).send((OnOffType) state);
-            } else if (item instanceof DateTimeItem) {
-                ((DateTimeItem) item).send((DateTimeType) state);
-            } else {
-                LOGGER.warn("cannot convert {}!", new Object[] { state } );
-            }
+        if (curr == null || !curr.equals(value)) {
+            item.sendUncheckedCommand(value);
         } else {
-            LOGGER.info("skipping send on {} curr={} old={}", new Object[] { getName(), curr, state });
+            LOGGER.info("skipping send on {} curr={} new={}", new Object[] { getName(), curr, value });
         }
     }
 
@@ -181,24 +164,8 @@ public class JrxItem {
         return new JrxfItemExpression(this);
     }
 
-    private State toState(Object state) {
-        State rv = null;
-        if (item.getType().equals(CoreItemFactory.DIMMER)) {
-            rv = PercentType.valueOf(String.valueOf(((BigDecimal) state).intValue()));
-        } else if (item.getType().equals(CoreItemFactory.NUMBER)) {
-            rv = DecimalType.valueOf(String.valueOf(state));
-        } else if (item.getType().equals(CoreItemFactory.SWITCH)) {
-            rv = String.valueOf(state).equals("ON") ? OnOffType.ON : OnOffType.OFF;
-        } else if (item.getType().equals(CoreItemFactory.DATETIME)) {
-            rv = new DateTimeType(ZonedDateTime.ofInstant(Instant.ofEpochMilli(((BigDecimal)state).longValue()), ZoneId.systemDefault()));
-        } else {
-            LOGGER.warn("Cannot convert state " + state + "!");
-        }
-        return rv;
-    }
-
     private Optional<String> getTagValue(String tagName) {
-        Optional<String> tagVal = item.getTags().stream()
+        Optional<String> tagVal = getTags().stream()
                 .filter(t -> t.matches("^" + tagName + "\s*=.*$"))
                 .findFirst();
         return tagVal.isPresent() ? Optional.of(tagVal.get().replaceFirst(tagName + "\s*=", "")) : tagVal;

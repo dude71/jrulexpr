@@ -1,6 +1,7 @@
 package org.d71.jrulexpr.expression;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -11,20 +12,27 @@ import java.util.stream.Collectors;
 
 import org.d71.jrulexpr.function.JrxFunction;
 import org.d71.jrulexpr.function.JrxFunctionRegistry;
+import org.d71.jrulexpr.item.JrxItem;
+import org.d71.jrulexpr.item.JrxItemRegistry;
 import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
+import org.openhab.automation.jrule.rules.value.JRuleValue;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.types.State;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.config.ExpressionConfiguration;
+import com.ezylang.evalex.data.EvaluationValue;
 import com.ezylang.evalex.functions.FunctionIfc;
 import com.ezylang.evalex.parser.Token.TokenType;
 
 public class JrxExpression {
-    private final static ItemTypeValueConverter converter = ItemTypeValueConverter.getInstance();
+    private static final Logger LOGGER = LoggerFactory.getLogger(JrxExpression.class);
+    private static final ItemTypeValueConverter converter = ItemTypeValueConverter.getInstance();
 
-    final ItemRegistry itemRegistry;
+    final JrxItemRegistry itemRegistry;
 
     final JrxFunctionRegistry functionRegistry;
 
@@ -33,20 +41,19 @@ public class JrxExpression {
     private Expression expression;
 
     public JrxExpression(String xpr) {
-        this(xpr, JRuleEventHandler.get().getItemRegistry(), JrxFunctionRegistry.getInstance());
+        this(xpr, JrxItemRegistry.getInstance(), JrxFunctionRegistry.getInstance());
     }
 
-    public JrxExpression(String xpr, ItemRegistry itemRegistry, JrxFunctionRegistry functionRegistry) {
+    public JrxExpression(String xpr, JrxItemRegistry itemRegistry, JrxFunctionRegistry functionRegistry) {
         this.xpr = xpr;
         validateXpr(xpr);
         this.itemRegistry = itemRegistry;
         this.functionRegistry = functionRegistry;
     }
 
-    public Set<Item> getItems() {
+    public Set<JrxItem> getItems() {
         return getUndefinedVars().stream()
-                .map(itemRegistry::get)
-                .filter(Objects::nonNull)
+                .map(itemRegistry::getItem)
                 .collect(Collectors.toSet());
     }
 
@@ -88,10 +95,15 @@ public class JrxExpression {
         Optional<Expression> optXpr = getExpression();
         if (optXpr.isPresent()) {
             Expression xpr = getExpression().get();
-            Map<String, State> values = getItems().stream().collect(Collectors.toMap(Item::getName, Item::getState));
+            // OpenJDK bug; null values in Map cause NullPointerException!
+            //Map<String, JRuleValue> values = getItems().stream().collect(Collectors.toMap(JrxItem::getName, JrxItem::getState));
+            Map<String, JRuleValue> values = getItems().stream().collect(HashMap::new, (m,v)->m.put(v.getName(), v.getState()), HashMap::putAll);
             xpr.withValues(values);
             try {
-                return xpr.evaluate().getValue();
+                LOGGER.debug("xpr " + xpr.getExpressionString());
+                EvaluationValue evaluate = xpr.evaluate();
+                LOGGER.debug("xpr {} eval {}", new Object[] { xpr.getExpressionString(), evaluate });
+                return evaluate.getValue();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

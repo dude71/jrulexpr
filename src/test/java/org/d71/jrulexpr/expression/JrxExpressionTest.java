@@ -2,12 +2,14 @@ package org.d71.jrulexpr.expression;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 
 import org.d71.jrulexpr.function.HourFunction;
 import org.junit.jupiter.api.Test;
+import org.openhab.core.library.CoreItemFactory;
 
 public class JrxExpressionTest extends AbstractJrxExpressionTest {
     // SUT
@@ -70,5 +72,13 @@ public class JrxExpressionTest extends AbstractJrxExpressionTest {
         jrxExpression = createJrxExpression("HOUR() + HOUR()");
 
         assertEquals((new HourFunction()).getValue().intValue(), ((BigDecimal)jrxExpression.evaluate()).intValue() / 2);
+    }
+
+    @Test
+    public void evaluateNullValue() {
+        createMockedItem("itm", CoreItemFactory.NUMBER, null);
+        jrxExpression = createJrxExpression("itm == 1");
+
+        assertFalse((Boolean)jrxExpression.evaluate());
     }
 }

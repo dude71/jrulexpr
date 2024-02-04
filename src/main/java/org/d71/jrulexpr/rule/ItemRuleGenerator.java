@@ -1,7 +1,13 @@
 package org.d71.jrulexpr.rule;
 
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -14,9 +20,12 @@ import org.burningwave.core.classes.VariableSourceGenerator;
 import org.d71.jrulexpr.function.JrxFunction;
 import org.d71.jrulexpr.item.JrxItem;
 import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
-import org.openhab.automation.jrule.rules.*;
+import org.openhab.automation.jrule.rules.JRuleMemberOf;
+import org.openhab.automation.jrule.rules.JRuleName;
+import org.openhab.automation.jrule.rules.JRuleWhenCronTrigger;
+import org.openhab.automation.jrule.rules.JRuleWhenItemChange;
+import org.openhab.automation.jrule.rules.JRuleWhenItemReceivedUpdate;
 import org.openhab.automation.jrule.rules.event.JRuleEvent;
-import org.openhab.core.items.Item;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +112,7 @@ public class ItemRuleGenerator {
     private void createMethodAnnotations(FunctionSourceGenerator method, JrxItem item) throws Exception {
         LOGGER.debug("Creating method annotations for jrx");
 
-        Set<Item> items = item.getTriggeringItems();
+        Set<JrxItem> items = item.getTriggeringItems();
 
         items.stream().filter(i -> i != item).forEach(i -> method.addAnnotation(
                 AnnotationSourceGenerator

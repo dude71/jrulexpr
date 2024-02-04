@@ -34,8 +34,8 @@ public class InitialValueFunction extends AbstractFunction implements JrxFunctio
     }
 
     @Override
-    public void setItemRegistry(ItemRegistry registry) {
-        this.itemRegistry = JrxItemRegistry.getInstance(registry);
+    public void setItemRegistry(JrxItemRegistry registry) {
+        this.itemRegistry = registry;
     }
 
     @Override
@@ -46,7 +46,7 @@ public class InitialValueFunction extends AbstractFunction implements JrxFunctio
     @Override
     public Object getValue(Object... parameters) {
         String itemName = (String)parameters[0];
-        JrxItem item = itemName == this.item.getName() ? this.item : itemRegistry.getItem(itemName);
+        //JrxItem item = itemName == this.item.getName() ? this.item : itemRegistry.getItem(itemName);
         
         return null;
     }

@@ -5,10 +5,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import com.ezylang.evalex.functions.FunctionParameter;
 import org.d71.jrulexpr.item.JrxItem;
+import org.d71.jrulexpr.item.JrxItemRegistry;
 import org.d71.jrulexpr.rule.RuleTrigger;
-import org.openhab.automation.jrule.items.JRuleGroupItem;
 import org.openhab.automation.jrule.items.JRuleItem;
 import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
 
@@ -16,16 +15,14 @@ import com.ezylang.evalex.EvaluationException;
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.data.EvaluationValue;
 import com.ezylang.evalex.functions.AbstractFunction;
+import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
-import org.openhab.core.items.Item;
-import org.openhab.core.items.ItemNotFoundException;
-import org.openhab.core.items.ItemRegistry;
 
 @FunctionParameter(name = "group")
 public class GroupFunction extends AbstractFunction implements JrxFunction<Boolean> { // group change triggered
     private JrxItem item;
 
-    private ItemRegistry itemRegistry;
+    private JrxItemRegistry itemRegistry;
 
     private String groupName;
 
@@ -35,7 +32,7 @@ public class GroupFunction extends AbstractFunction implements JrxFunction<Boole
     }
 
     @Override
-    public void setItemRegistry(ItemRegistry registry) {
+    public void setItemRegistry(JrxItemRegistry registry) {
         itemRegistry = registry;
     }
 
@@ -79,11 +76,7 @@ public class GroupFunction extends AbstractFunction implements JrxFunction<Boole
     }
 
     private boolean triggeringItemInGroup(JRuleItem trItem, String groupName) {
-        try {
-            return itemRegistry.getItem(trItem.getName()).getGroupNames().contains(groupName);
-        } catch (ItemNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        return itemRegistry.getItem(trItem.getName()).getGroupNames().contains(groupName);
     }
 
 }

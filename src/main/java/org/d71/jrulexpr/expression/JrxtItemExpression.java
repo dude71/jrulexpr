@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 import org.d71.jrulexpr.function.JrxFunctionRegistry;
 import org.d71.jrulexpr.item.JrxItem;
-import org.openhab.core.items.ItemRegistry;
+import org.d71.jrulexpr.item.JrxItemRegistry;
 import org.openhab.core.library.CoreItemFactory;
 
 public class JrxtItemExpression extends AbstractJrxItemExpression {
@@ -13,7 +13,7 @@ public class JrxtItemExpression extends AbstractJrxItemExpression {
         super(item, item.getJrxt());
     }
 
-    public JrxtItemExpression(JrxItem item, ItemRegistry itemRegistry, JrxFunctionRegistry functionRegistry) {
+    public JrxtItemExpression(JrxItem item, JrxItemRegistry itemRegistry, JrxFunctionRegistry functionRegistry) {
         super(item, item.getJrxt(), itemRegistry, functionRegistry);
     }
     

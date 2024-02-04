@@ -1,8 +1,9 @@
 package org.d71.jrulexpr.expression;
 
-import org.openhab.core.library.types.DecimalType;
-import org.openhab.core.library.types.OnOffType;
-import org.openhab.core.types.UnDefType;
+import java.math.BigDecimal;
+
+import org.d71.jrulexpr.item.ValueConverter;
+import org.openhab.automation.jrule.rules.value.JRuleValue;
 
 import com.ezylang.evalex.config.ExpressionConfiguration;
 import com.ezylang.evalex.data.EvaluationValue;
@@ -16,27 +17,28 @@ public class ItemTypeValueConverter implements EvaluationValueConverterIfc {
         if (instance == null) {
             instance = new ItemTypeValueConverter();
         }
-        return instance;    
+        return instance;
     }
 
     private EvaluationValueConverterIfc defaultConverter = new DefaultEvaluationValueConverter();
 
     @Override
     public EvaluationValue convertObject(Object object, ExpressionConfiguration configuration) {
-        EvaluationValue val = null;
+        Object convertedObj = object instanceof JRuleValue ? ValueConverter.convertToObject((JRuleValue) object)
+                : defaultConverter.convertObject(object, configuration);
+        EvaluationValue val;
 
-        if (object instanceof DecimalType)
-            val = EvaluationValue.numberValue(
-                    ((DecimalType) object).toBigDecimal());
-        else if (object instanceof OnOffType)
-            val = EvaluationValue.stringValue(
-                    ((OnOffType) object).toString());
-        else if (object instanceof UnDefType) {
-            val = EvaluationValue.nullValue();
-        } else
-            val = defaultConverter.convertObject(object, configuration);
+        if (convertedObj instanceof EvaluationValue)
+            val = (EvaluationValue)convertedObj;
+        else if (convertedObj instanceof BigDecimal)
+            val = EvaluationValue.numberValue((BigDecimal) convertedObj);
+        else if (convertedObj instanceof String)
+            val = EvaluationValue.stringValue((String) convertedObj);
+        else {
+            throw new RuntimeException("Object " + object + " cannot be converted!");
+        }
 
         return val;
     }
-    
+
 }

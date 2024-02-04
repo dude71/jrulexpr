@@ -3,7 +3,7 @@ package org.d71.jrulexpr.expression;
 import org.d71.jrulexpr.function.JrxFunction;
 import org.d71.jrulexpr.function.JrxFunctionRegistry;
 import org.d71.jrulexpr.item.JrxItem;
-import org.openhab.core.items.ItemRegistry;
+import org.d71.jrulexpr.item.JrxItemRegistry;
 
 public abstract class AbstractJrxItemExpression extends JrxExpression {
     private final JrxItem item;
@@ -13,7 +13,7 @@ public abstract class AbstractJrxItemExpression extends JrxExpression {
         this.item = item;
     }
 
-    AbstractJrxItemExpression(JrxItem item, String xpr, ItemRegistry itemRegistry, JrxFunctionRegistry functionRegistry) {
+    AbstractJrxItemExpression(JrxItem item, String xpr, JrxItemRegistry itemRegistry, JrxFunctionRegistry functionRegistry) {
         super(xpr, itemRegistry, functionRegistry);
         this.item = item;   
     }

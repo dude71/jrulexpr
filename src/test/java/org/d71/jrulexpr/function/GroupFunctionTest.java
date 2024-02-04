@@ -1,7 +1,15 @@
 package org.d71.jrulexpr.function;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Arrays;
+import java.util.List;
+
 import org.d71.jrulexpr.AbstractItemTest;
 import org.d71.jrulexpr.item.JrxItem;
+import org.d71.jrulexpr.item.JrxItemRegistry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -11,13 +19,7 @@ import org.openhab.automation.jrule.items.JRuleItem;
 import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemNotFoundException;
-import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.library.CoreItemFactory;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class GroupFunctionTest extends AbstractItemTest {
@@ -26,7 +28,7 @@ public class GroupFunctionTest extends AbstractItemTest {
         // SUT
         GroupFunction func = new GroupFunction();
 
-        JrxItem itm = createJrxItem("item", CoreItemFactory.NUMBER, "1");
+        JrxItem itm = createMockedItem("item", CoreItemFactory.NUMBER, "1");
 
         JRuleGroupItem grp = createMockedJRuleGroupItem("group");
 
@@ -43,14 +45,14 @@ public class GroupFunctionTest extends AbstractItemTest {
     public void testGetValueNonGroupTrigger() throws ItemNotFoundException {
         // SUT
         GroupFunction func = new GroupFunction();
-        ItemRegistry itemReg = Mockito.mock(ItemRegistry.class);
+        JrxItemRegistry itemReg = Mockito.mock(JrxItemRegistry.class);
         func.setItemRegistry(itemReg);
 
-        JrxItem itm = createJrxItem("item", CoreItemFactory.NUMBER, "1", "jrx=true");
+        JrxItem itm = createMockedItem("item", CoreItemFactory.NUMBER, "1", "jrx=true");
         JRuleItem itmTr = createMockedJRuleItem("itemTr");
         JRuleItemEvent evt = Mockito.mock(JRuleItemEvent.class);
         Mockito.lenient().when(evt.getItem()).thenReturn(itmTr);
-        Mockito.when(itemReg.getItem(itmTr.getName())).thenReturn(Mockito.mock(Item.class));
+        Mockito.when(itemReg.getItem(itmTr.getName())).thenReturn(Mockito.mock(JrxItem.class));
         itm.setLastTriggeredBy(evt);
 
         func.setItem(itm);

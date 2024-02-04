@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 import org.d71.jrulexpr.item.JrxItem;
 import org.openhab.automation.jrule.internal.handler.JRuleTimerHandler;
 import org.openhab.automation.jrule.internal.handler.JRuleTimerHandler.JRuleTimer;
-import org.openhab.core.types.State;
+import org.openhab.automation.jrule.rules.value.JRuleValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,18 +102,16 @@ public class MinTimeFunction extends AbstractFunction implements JrxFunction<Boo
     }
 
     private String timerName(JRuleTimer t) {
-        return t.getLogName() + " " + t.hashCode();
+        return t.getLogName().replaceFirst("^.* / ", "") + " " + t.hashCode();
     }
 
     private void rescheduleTimer(String ruleName, JRuleTimer timer, Duration duration) {
-        String timerName = timerName(timer);
         synchronized (timers) {
-            JRuleTimer oldTimer = timers.get(ruleName);
+            String timerName = timerName(timer);
             JRuleTimer newTimer = timer.rescheduleTimer(duration);
-            oldTimer.cancel();
-            LOGGER.trace("timer {}, oldTimer {}, newTimer {}", new Object[] {timer.hashCode(), oldTimer.hashCode(), newTimer.hashCode()});
+            LOGGER.trace("timer {}, oldTimer {}, newTimer {}", new Object[] {timer.hashCode(), timer.hashCode(), newTimer.hashCode()});
             timers.put(ruleName, newTimer);
-            LOGGER.debug("rescheduled timer {} -> {}, #timers {}", new Object[] { timerName, newTimer.hashCode(), timers.size() });
+            LOGGER.debug("rescheduled timer {} (done={}) -> {}, #timers {}", new Object[] { timerName, timer.isDone(), newTimer.hashCode(), timers.size() });
         }
     }
 
@@ -140,7 +138,7 @@ public class MinTimeFunction extends AbstractFunction implements JrxFunction<Boo
                         rescheduleTimer(ruleName, t, duration);
                     } else {
                         clear = true;
-                        State newState = item.evaluateJrxf();
+                        JRuleValue newState = item.evaluateJrxf();
                         LOGGER.debug("ta: timer {} action cmd={} for {}",
                                 new Object[] { timerName(t), newState, item.getName() });
                         item.send(newState);

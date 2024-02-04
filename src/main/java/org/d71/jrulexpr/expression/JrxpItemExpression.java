@@ -2,7 +2,7 @@ package org.d71.jrulexpr.expression;
 
 import org.d71.jrulexpr.function.JrxFunctionRegistry;
 import org.d71.jrulexpr.item.JrxItem;
-import org.openhab.core.items.ItemRegistry;
+import org.d71.jrulexpr.item.JrxItemRegistry;
 
 public class JrxpItemExpression extends AbstractJrxItemExpression {
 
@@ -10,7 +10,7 @@ public class JrxpItemExpression extends AbstractJrxItemExpression {
         super(item, item.getJrxp());
     }
 
-    public JrxpItemExpression(JrxItem item, ItemRegistry itemRegistry, JrxFunctionRegistry functionRegistry) {
+    public JrxpItemExpression(JrxItem item, JrxItemRegistry itemRegistry, JrxFunctionRegistry functionRegistry) {
         super(item, item.getJrxp(), itemRegistry, functionRegistry);
     }
     
