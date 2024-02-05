@@ -2,6 +2,7 @@ package org.d71.jrulexpr.item;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -12,6 +13,7 @@ import org.d71.jrulexpr.expression.JrxpItemExpression;
 import org.d71.jrulexpr.expression.JrxtItemExpression;
 import org.d71.jrulexpr.function.JrxFunction;
 import org.openhab.automation.jrule.items.JRuleItem;
+import org.openhab.automation.jrule.items.metadata.JRuleItemMetadata;
 import org.openhab.automation.jrule.rules.event.JRuleEvent;
 import org.openhab.automation.jrule.rules.value.JRuleValue;
 import org.slf4j.Logger;
@@ -46,6 +48,10 @@ public class JrxItem {
         return item.getTags();
     }
 
+    public Map<String, JRuleItemMetadata> getMetadata() {
+        return item.getMetadata();
+    }
+
     public void setLastTriggeredBy(JRuleEvent event) {
         this.lastTriggeredBy = event;
     }
@@ -76,19 +82,23 @@ public class JrxItem {
     }
 
     public String getJrx() {
-        return getTagValue("jrx").orElse(null);
+        //return getTagValue("jrx").orElse(getMetadataValue("jrx", "jrx").orElse(null));
+        return getTagValue("jrx").orElse(getMetadataValue("jrx").orElse(null));
     }
 
     public String getJrxp() {
-        return getTagValue("jrxp").orElse(null);
+        //return getTagValue("jrxp").orElse(getMetadataValue("jrx", "jrxp").orElse(null));
+        return getTagValue("jrxp").orElse(getMetadataValue("jrxp").orElse(null));
     }
 
     public String getJrxt() {
-        return getTagValue("jrxt").orElse(null);
+        //return getTagValue("jrxt").orElse(getMetadataValue("jrx", "jrxt").orElse(null));
+        return getTagValue("jrxt").orElse(getMetadataValue("jrxt").orElse(null));
     }
 
     public String getJrxf() {
-        return getTagValue("jrxf").orElse(null);
+        //return getTagValue("jrxf").orElse(getMetadataValue("jrx", "jrxf").orElse(null));
+        return getTagValue("jrxf").orElse(getMetadataValue("jrxf").orElse(null));
     }
 
     public Boolean evaluateJrxp() {
@@ -169,5 +179,15 @@ public class JrxItem {
                 .filter(t -> t.matches("^" + tagName + "\s*=.*$"))
                 .findFirst();
         return tagVal.isPresent() ? Optional.of(tagVal.get().replaceFirst(tagName + "\s*=", "")) : tagVal;
+    }
+
+    // private Optional<String> getMetadataValue(String meta, String name) {
+    //     JRuleItemMetadata mdat= getMetadata().get(meta);
+    //     return Optional.ofNullable(mdat == null ? null : (String)mdat.getConfiguration().get(name));
+    // }
+
+    private Optional<String> getMetadataValue(String meta) {
+        JRuleItemMetadata mdat= getMetadata().get(meta);
+        return Optional.ofNullable(mdat == null ? null : (String)mdat.getValue());
     }
 }

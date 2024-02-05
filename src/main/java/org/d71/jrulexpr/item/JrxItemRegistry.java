@@ -1,9 +1,9 @@
 package org.d71.jrulexpr.item;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
 import org.openhab.automation.jrule.items.JRuleItem;
@@ -34,12 +34,21 @@ public class JrxItemRegistry {
     }
 
     public Set<JrxItem> getItems() {
-        return new HashSet<>(itemRegistry
-                .getAll()
-                .stream()
-                .filter(i -> i.getTags().stream()
-                        .filter(t -> t.contains("jrx")).count() > 0)
-                .map(this::getItem).toList());
+        return itemRegistry.getItems()
+            .stream().map(Item::getName)
+            .map(this::getJRuleItem)
+            .filter(i -> 
+                i.getTags().stream().filter(t -> t.contains("jrx")).findAny().isPresent() || 
+                i.getMetadata().containsKey("jrx"))
+            .map(JrxItem::new)
+            .collect(Collectors.toSet());
+
+        // return new HashSet<>(itemRegistry
+        //         .getItems()
+        //         .stream()
+        //         .filter(i -> (i.getTags().stream()
+        //                 .filter(t -> t.contains("jrx")).count() > 0) || getItem(i).getJrx() != null)
+        //         .map(this::getItem).toList());
     }
 
     public JrxItem getItem(String name) {
@@ -60,7 +69,7 @@ public class JrxItemRegistry {
     protected JRuleItem getJRuleItem(String name) {
         LOGGER.debug("get JRuleItem " + name);
         JRuleItem itm = JRuleItem.forName(name);
-        LOGGER.debug("JRuleItem " + itm + " state=" + itm.getState());
+        LOGGER.debug("JRuleItem " + itm + " state=" + itm.getState() + " metadata=" + itm.getMetadata().size());
         return itm;
     }
 

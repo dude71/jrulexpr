@@ -100,7 +100,6 @@ public class JrxExpression {
             Map<String, JRuleValue> values = getItems().stream().collect(HashMap::new, (m,v)->m.put(v.getName(), v.getState()), HashMap::putAll);
             xpr.withValues(values);
             try {
-                LOGGER.debug("xpr " + xpr.getExpressionString());
                 EvaluationValue evaluate = xpr.evaluate();
                 LOGGER.debug("xpr {} eval {}", new Object[] { xpr.getExpressionString(), evaluate });
                 return evaluate.getValue();
