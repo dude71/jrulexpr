@@ -1,6 +1,8 @@
 package org.d71.jrulexpr;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.d71.jrulexpr.expression.JrxItemExpression;
 import org.d71.jrulexpr.expression.JrxfItemExpression;
@@ -15,6 +17,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openhab.automation.jrule.items.JRuleGroupItem;
 import org.openhab.automation.jrule.items.JRuleItem;
+import org.openhab.automation.jrule.items.metadata.JRuleItemMetadata;
 import org.openhab.automation.jrule.rules.value.JRuleDecimalValue;
 import org.openhab.automation.jrule.rules.value.JRuleOnOffValue;
 import org.openhab.automation.jrule.rules.value.JRulePercentValue;
@@ -31,6 +34,8 @@ public abstract class AbstractItemTest {
         try {
             JRuleItem jrItm = Mockito.mock(JRuleItem.class);
             JrxItem itm = new JrxItem(jrItm) {
+                private Map<String, JRuleItemMetadata> metadata = new HashMap<>();
+                
                 @Override
                 protected JrxItemExpression createJrxItemExpression() {
                     return new JrxItemExpression(this, itemRegistry, functionRegistry);
@@ -49,7 +54,12 @@ public abstract class AbstractItemTest {
                 @Override
                 protected JrxfItemExpression createJrxfItemExpression() {
                     return new JrxfItemExpression(this, itemRegistry, functionRegistry);
-                }                
+                } 
+                
+                @Override
+                public Map<String, JRuleItemMetadata> getMetadata() {
+                    return metadata;
+                }
             };
             Mockito.lenient().when(jrItm.getType()).thenReturn(type);
             Mockito.lenient().when(jrItm.getName()).thenReturn(name);

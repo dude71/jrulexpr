@@ -24,6 +24,16 @@ import com.ezylang.evalex.data.EvaluationValue;
 public class ValueConverter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValueConverter.class);
 
+    public static JRuleValue convertStringToValue(String value, String itemType) {
+        Object object = null;
+        if (CoreItemFactory.DIMMER.equals(itemType)) {
+            object = BigDecimal.valueOf(Integer.parseInt(value));
+        } else if (CoreItemFactory.NUMBER.equals(itemType)) {
+            object = BigDecimal.valueOf(Double.parseDouble(value));
+        } // TODO rest
+        return object == null ? null : convertToValue(object, itemType);
+    }
+
     public static JRuleValue convertToValue(Object object, String itemType) {
         JRuleValue rv = null;
         if (CoreItemFactory.DIMMER.equals(itemType)) {

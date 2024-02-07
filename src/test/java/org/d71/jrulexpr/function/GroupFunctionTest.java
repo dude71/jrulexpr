@@ -17,11 +17,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.openhab.automation.jrule.items.JRuleGroupItem;
 import org.openhab.automation.jrule.items.JRuleItem;
 import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
-import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemNotFoundException;
 import org.openhab.core.library.CoreItemFactory;
 
-@ExtendWith(MockitoExtension.class)
 public class GroupFunctionTest extends AbstractItemTest {
     @Test
     public void testGetValueGroupTrigger() {

@@ -1,10 +1,6 @@
 package org.d71.jrulexpr.item;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.text.CaseUtils;
 import org.d71.jrulexpr.expression.JrxItemExpression;
@@ -48,8 +44,37 @@ public class JrxItem {
         return item.getTags();
     }
 
+    public Optional<String> getTagValue(String tagName) {
+        Optional<String> tagVal = getTags().stream()
+                .filter(t -> t.matches("^" + tagName + "\s*=.*$"))
+                .findFirst();
+        return tagVal.isPresent() ? Optional.of(tagVal.get().replaceFirst(tagName + "\s*=", "")) : tagVal;
+    }
+
+    public void setTagValue(String tagName, String value) {
+        getTags().add(tagName + "=" + value);
+    }
+
     public Map<String, JRuleItemMetadata> getMetadata() {
         return item.getMetadata();
+    }
+
+    public JRuleItemMetadata getMetadataEntry(String meta) {
+        return getMetadata().get(meta);
+    }
+
+    public Optional<String> getMetadataValue(String meta) {
+        JRuleItemMetadata mdat = getMetadataEntry(meta);
+        return Optional.ofNullable(mdat == null ? null : (String)mdat.getValue());
+    }
+
+    public Map<String, Object> getMetadataConfig(String meta) {
+        JRuleItemMetadata mdat = getMetadataEntry(meta);
+        return mdat == null ? Collections.emptyMap() : mdat.getConfiguration();
+    }
+
+    public Optional<Object> getMetadataConfigValue(String meta, String key) {
+        return Optional.ofNullable(getMetadataConfig(meta).get(key));
     }
 
     public void setLastTriggeredBy(JRuleEvent event) {
@@ -174,20 +199,9 @@ public class JrxItem {
         return new JrxfItemExpression(this);
     }
 
-    private Optional<String> getTagValue(String tagName) {
-        Optional<String> tagVal = getTags().stream()
-                .filter(t -> t.matches("^" + tagName + "\s*=.*$"))
-                .findFirst();
-        return tagVal.isPresent() ? Optional.of(tagVal.get().replaceFirst(tagName + "\s*=", "")) : tagVal;
-    }
-
     // private Optional<String> getMetadataValue(String meta, String name) {
     //     JRuleItemMetadata mdat= getMetadata().get(meta);
     //     return Optional.ofNullable(mdat == null ? null : (String)mdat.getConfiguration().get(name));
     // }
 
-    private Optional<String> getMetadataValue(String meta) {
-        JRuleItemMetadata mdat= getMetadata().get(meta);
-        return Optional.ofNullable(mdat == null ? null : (String)mdat.getValue());
-    }
 }

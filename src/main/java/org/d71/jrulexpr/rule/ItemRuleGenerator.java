@@ -119,7 +119,9 @@ public class ItemRuleGenerator {
                         .create(JRuleWhenItemChange.class)
                         .addParameter("item", VariableSourceGenerator.create("\"" + i.getName() + "\""))));
 
-        item.getFunctions().stream()
+        Set<JrxFunction<?>> functions = item.getFunctions();
+
+        functions.stream()
                 .map(JrxFunction::getRuleTrigger)
                 .flatMap(Optional::stream)
                 .map(RuleTrigger::getCronExpression)
@@ -130,7 +132,7 @@ public class ItemRuleGenerator {
                             .addParameter("cron", VariableSourceGenerator.create(c)));
                 });
 
-        item.getFunctions().stream()
+        functions.stream()
                 .map(JrxFunction::getRuleTrigger)
                 .flatMap(Optional::stream)
                 .map(RuleTrigger::getGroups)
@@ -141,6 +143,32 @@ public class ItemRuleGenerator {
                             .create(JRuleWhenItemReceivedUpdate.class)
                             .addParameter("item", VariableSourceGenerator.create("\"" + g + "\""))
                             .addParameter("memberOf", VariableSourceGenerator.create("JRuleMemberOf.All"))
+                    );
+                });
+
+        functions.stream()
+                .map(JrxFunction::getRuleTrigger)
+                .flatMap(Optional::stream)
+                .filter(RuleTrigger::evaluateOnUpdate)
+                .map(RuleTrigger::getItem)
+                .filter(item.getName()::equals)
+                .collect(Collectors.toSet()).forEach(i -> {
+                   method.addAnnotation(AnnotationSourceGenerator
+                           .create(JRuleWhenItemReceivedUpdate.class)
+                           .addParameter("item", VariableSourceGenerator.create("\"" + i + "\""))
+                   );
+                });
+
+        functions.stream()
+                .map(JrxFunction::getRuleTrigger)
+                .flatMap(Optional::stream)
+                .filter(RuleTrigger::evaluateOnChange)
+                .map(RuleTrigger::getItem)
+                .filter(item.getName()::equals)
+                .collect(Collectors.toSet()).forEach(i -> {
+                    method.addAnnotation(AnnotationSourceGenerator
+                            .create(JRuleWhenItemChange.class)
+                            .addParameter("item", VariableSourceGenerator.create("\"" + i + "\""))
                     );
                 });
 
