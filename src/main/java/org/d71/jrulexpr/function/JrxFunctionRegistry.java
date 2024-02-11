@@ -11,6 +11,7 @@ public class JrxFunctionRegistry {
     public static synchronized JrxFunctionRegistry getInstance() {
         if (registry == null) {
             registry = new JrxFunctionRegistry();
+            registry.register(ChannelFunction.class);
             registry.register(GroupFunction.class);
             registry.register(HostFunction.class);
             registry.register(HourFunction.class);

@@ -1,6 +1,11 @@
 package org.d71.jrulexpr.item;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.text.CaseUtils;
 import org.d71.jrulexpr.expression.JrxItemExpression;
@@ -65,7 +70,7 @@ public class JrxItem {
 
     public Optional<String> getMetadataValue(String meta) {
         JRuleItemMetadata mdat = getMetadataEntry(meta);
-        return Optional.ofNullable(mdat == null ? null : (String)mdat.getValue());
+        return Optional.ofNullable(mdat == null ? null : (String) mdat.getValue());
     }
 
     public Map<String, Object> getMetadataConfig(String meta) {
@@ -107,23 +112,27 @@ public class JrxItem {
     }
 
     public String getJrx() {
-        //return getTagValue("jrx").orElse(getMetadataValue("jrx", "jrx").orElse(null));
-        return getTagValue("jrx").orElse(getMetadataValue("jrx").orElse(null));
+        // return getTagValue("jrx").orElse(getMetadataValue("jrx",
+        // "jrx").orElse(null));
+        return getMetadataValue("jrx").orElse(getTagValue("jrx").orElse(null));
     }
 
     public String getJrxp() {
-        //return getTagValue("jrxp").orElse(getMetadataValue("jrx", "jrxp").orElse(null));
-        return getTagValue("jrxp").orElse(getMetadataValue("jrxp").orElse(null));
+        // return getTagValue("jrxp").orElse(getMetadataValue("jrx",
+        // "jrxp").orElse(null));
+        return getMetadataValue("jrxp").orElse(getTagValue("jrxp").orElse(null));
     }
 
     public String getJrxt() {
-        //return getTagValue("jrxt").orElse(getMetadataValue("jrx", "jrxt").orElse(null));
-        return getTagValue("jrxt").orElse(getMetadataValue("jrxt").orElse(null));
+        // return getTagValue("jrxt").orElse(getMetadataValue("jrx",
+        // "jrxt").orElse(null));
+        return getMetadataValue("jrxt").orElse(getTagValue("jrxt").orElse(null));
     }
 
     public String getJrxf() {
-        //return getTagValue("jrxf").orElse(getMetadataValue("jrx", "jrxf").orElse(null));
-        return getTagValue("jrxf").orElse(getMetadataValue("jrxf").orElse(null));
+        // return getTagValue("jrxf").orElse(getMetadataValue("jrx",
+        // "jrxf").orElse(null));
+        return getMetadataValue("jrxf").orElse(getTagValue("jrxf").orElse(null));
     }
 
     public Boolean evaluateJrxp() {
@@ -155,7 +164,12 @@ public class JrxItem {
         String methodName = getRuleMethodName();
 
         if (evaluateJrxp()) {
-            value = Optional.of(evaluateJrx() ? evaluateJrxt() : evaluateJrxf());
+            if (getJrx() == null) {
+                value = Optional.empty();
+                LOGGER.debug("no jrx specified");
+            } else {
+                value = Optional.of(evaluateJrx() ? evaluateJrxt() : evaluateJrxf());
+            }
         } else {
             value = Optional.empty();
             LOGGER.debug("-- pre condition {} NOT met for {}", new Object[] { getJrxp(), methodName });
@@ -200,8 +214,9 @@ public class JrxItem {
     }
 
     // private Optional<String> getMetadataValue(String meta, String name) {
-    //     JRuleItemMetadata mdat= getMetadata().get(meta);
-    //     return Optional.ofNullable(mdat == null ? null : (String)mdat.getConfiguration().get(name));
+    // JRuleItemMetadata mdat= getMetadata().get(meta);
+    // return Optional.ofNullable(mdat == null ? null :
+    // (String)mdat.getConfiguration().get(name));
     // }
 
 }

@@ -22,6 +22,7 @@ import org.d71.jrulexpr.item.JrxItem;
 import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
 import org.openhab.automation.jrule.rules.JRuleMemberOf;
 import org.openhab.automation.jrule.rules.JRuleName;
+import org.openhab.automation.jrule.rules.JRuleWhenChannelTrigger;
 import org.openhab.automation.jrule.rules.JRuleWhenCronTrigger;
 import org.openhab.automation.jrule.rules.JRuleWhenItemChange;
 import org.openhab.automation.jrule.rules.JRuleWhenItemReceivedUpdate;
@@ -169,6 +170,18 @@ public class ItemRuleGenerator {
                     method.addAnnotation(AnnotationSourceGenerator
                             .create(JRuleWhenItemChange.class)
                             .addParameter("item", VariableSourceGenerator.create("\"" + i + "\""))
+                    );
+                });
+
+        functions.stream()
+                .map(JrxFunction::getRuleTrigger)
+                .flatMap(Optional::stream)
+                .filter(t -> t.getChannel() != null)
+                .map(RuleTrigger::getChannel)
+                .forEach(c -> {
+                    method.addAnnotation(AnnotationSourceGenerator
+                        .create(JRuleWhenChannelTrigger.class)
+                        .addParameter("channel", VariableSourceGenerator.create("\"" + c + "\""))
                     );
                 });
 

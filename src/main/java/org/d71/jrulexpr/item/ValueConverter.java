@@ -1,25 +1,17 @@
 package org.d71.jrulexpr.item;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Date;
 
 import org.openhab.automation.jrule.rules.value.JRuleDateTimeValue;
 import org.openhab.automation.jrule.rules.value.JRuleDecimalValue;
 import org.openhab.automation.jrule.rules.value.JRuleOnOffValue;
 import org.openhab.automation.jrule.rules.value.JRulePercentValue;
+import org.openhab.automation.jrule.rules.value.JRuleStringValue;
 import org.openhab.automation.jrule.rules.value.JRuleValue;
 import org.openhab.core.library.CoreItemFactory;
-import org.openhab.core.library.types.DateTimeType;
-import org.openhab.core.library.types.DecimalType;
-import org.openhab.core.library.types.OnOffType;
-import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.ezylang.evalex.data.EvaluationValue;
 
 public class ValueConverter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValueConverter.class);
@@ -44,6 +36,8 @@ public class ValueConverter {
             rv = String.valueOf(object).equals("ON") ? JRuleOnOffValue.ON : JRuleOnOffValue.OFF;
         } else if (CoreItemFactory.DATETIME.equals(itemType)) {
             rv = new JRuleDateTimeValue(new Date(((BigDecimal) object).longValue()));
+        } else if (CoreItemFactory.STRING.equals(itemType)) {
+            rv = new JRuleStringValue((String) object);
         } else {
             LOGGER.warn("Cannot convert object {} to value!", new Object[] { object });
         }
@@ -60,6 +54,8 @@ public class ValueConverter {
             obj = BigDecimal.valueOf(((JRulePercentValue) value).intValue());
         else if (value instanceof JRuleDateTimeValue)
             obj = BigDecimal.valueOf(((JRuleDateTimeValue) value).getValue().toEpochSecond());
+        else if (value instanceof JRuleStringValue)
+            obj = value.stringValue();
         else
             LOGGER.warn("Cannot convert value {} to object!", new Object[] { value });
         return obj;

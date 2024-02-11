@@ -20,4 +20,8 @@ public interface RuleTrigger {
     default boolean evaluateOnChange() {
         return false;
     }
+
+    default String getChannel() {
+        return null;
+    }
 }

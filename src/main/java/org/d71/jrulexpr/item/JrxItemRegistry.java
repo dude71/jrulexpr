@@ -38,9 +38,17 @@ public class JrxItemRegistry {
             .stream().map(Item::getName)
             .map(this::getJRuleItem)
             .filter(i -> 
-                i.getTags().stream().filter(t -> t.contains("jrx")).findAny().isPresent() || 
-                i.getMetadata().containsKey("jrx"))
-            .map(JrxItem::new)
+                i.getTags().stream().filter(t -> 
+                    t.contains("jrx") || 
+                    t.contains("jrxp") ||
+                    t.contains("jrxt") ||
+                    t.contains("jrxf")
+                ).findAny().isPresent() || 
+                i.getMetadata().containsKey("jrx") || 
+                i.getMetadata().containsKey("jrxp") ||
+                i.getMetadata().containsKey("jrxt") ||
+                i.getMetadata().containsKey("jrxf")
+            ).map(JrxItem::new)
             .collect(Collectors.toSet());
 
         // return new HashSet<>(itemRegistry

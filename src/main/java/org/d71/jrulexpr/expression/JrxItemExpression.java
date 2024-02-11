@@ -11,13 +11,5 @@ public class JrxItemExpression extends AbstractJrxItemExpression {
 
     public JrxItemExpression(JrxItem item, JrxItemRegistry itemRegistry, JrxFunctionRegistry functionRegistry) {
         super(item, item.getJrx(), itemRegistry, functionRegistry);
-    }
-
-    @Override
-    protected void validateXpr(String xpr) {
-        super.validateXpr(xpr);
-        if (xpr == null || xpr.isBlank()) {
-            throw new IllegalStateException("jrx tag must be present!");
-        }
-    }     
+    }    
 }
