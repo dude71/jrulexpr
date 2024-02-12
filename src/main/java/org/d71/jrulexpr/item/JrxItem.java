@@ -164,12 +164,7 @@ public class JrxItem {
         String methodName = getRuleMethodName();
 
         if (evaluateJrxp()) {
-            if (getJrx() == null) {
-                value = Optional.empty();
-                LOGGER.debug("no jrx specified");
-            } else {
-                value = Optional.of(evaluateJrx() ? evaluateJrxt() : evaluateJrxf());
-            }
+            value = Optional.of(getJrx() == null || evaluateJrx() ? evaluateJrxt() : evaluateJrxf());
         } else {
             value = Optional.empty();
             LOGGER.debug("-- pre condition {} NOT met for {}", new Object[] { getJrxp(), methodName });

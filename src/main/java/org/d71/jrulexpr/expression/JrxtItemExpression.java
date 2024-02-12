@@ -31,6 +31,8 @@ public class JrxtItemExpression extends AbstractJrxItemExpression {
             rv = BigDecimal.valueOf(1);
         } else if (CoreItemFactory.SWITCH.equals(item.getType())) {
             rv = "ON";
+        } else if (CoreItemFactory.STRING.equals(item.getType())) {
+            rv = null;
         }
         return rv;
     }    

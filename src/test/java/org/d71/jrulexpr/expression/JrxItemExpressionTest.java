@@ -1,5 +1,6 @@
 package org.d71.jrulexpr.expression;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -42,6 +43,15 @@ public class JrxItemExpressionTest extends AbstractJrxExpressionTest {
         JrxpItemExpression jrxp = new JrxpItemExpression(item, itemRegistry, functionRegistry);
 
         assertTrue((Boolean)jrxp.evaluate());
+    }
+
+    @Test
+    public void getTriggeringItems() {
+        JrxItem itm1 = createMockedItem("itm1", CoreItemFactory.STRING, "test");
+        JrxItem itm2 = createMockedItem("itm2", CoreItemFactory.NUMBER, "2", "jrxp=SUBSTR(itm1, 0, 1) == \"t\"");
+
+        assertEquals(1, itm2.getTriggeringItems().size());
+        assertEquals(itm1, itm2.getTriggeringItems().iterator().next());
     }
 
     private JrxItemExpression createJrxItemExpression(JrxItem item) {
