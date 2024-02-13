@@ -69,7 +69,7 @@ public class GroupFunction extends AbstractFunction implements JrxFunction<Boole
     public Optional<RuleTrigger> getRuleTrigger() {
         return groupName == null ? Optional.empty() : Optional.of(new RuleTrigger() {
             @Override
-            public Set<String> getGroups() {
+            public Set<String> getGroupNames() {
                 return Collections.singleton(groupName);
             }
         });

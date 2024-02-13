@@ -101,7 +101,7 @@ public class JrxExpression {
             xpr.withValues(values);
             try {
                 EvaluationValue evaluate = xpr.evaluate();
-                LOGGER.debug("xpr {} eval {}", new Object[] { xpr.getExpressionString(), evaluate });
+                LOGGER.debug("xpr {} => {}", new Object[] { xpr.getExpressionString(), evaluate.getValue() });
                 return evaluate.getValue();
             } catch (Exception e) {
                 throw new RuntimeException(e);

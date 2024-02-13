@@ -7,11 +7,11 @@ public interface RuleTrigger {
     default String getCronExpression() {
         return null;
     }
-    default Set<String> getGroups() {
+    default Set<String> getGroupNames() {
         return Collections.emptySet();
     }
 
-    default String getItem() { return null; }
+    default String getItemName() { return null; }
 
     default boolean evaluateOnUpdate() {
         return false;

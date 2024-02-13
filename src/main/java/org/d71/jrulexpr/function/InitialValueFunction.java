@@ -56,9 +56,9 @@ public class InitialValueFunction extends AbstractFunction implements JrxFunctio
 
     @Override
     public EvaluationValue evaluate(Expression arg0, Token arg1, EvaluationValue... parameters) throws EvaluationException {
-        Object itemName = parameters.length == 0 ? item.getName() : parameters[0].getStringValue();
-        LOGGER.trace("itemName: " + itemName);
-        JRuleValue val = (JRuleValue) getValue(itemName);
+        Object item = parameters.length == 0 ? this.item.getName() : parameters[0].getStringValue();
+        LOGGER.trace("itemName: " + item);
+        JRuleValue val = (JRuleValue) getValue(item);
         LOGGER.trace("value: " + val.stringValue());
         EvaluationValue eval = new EvaluationValue(val, ExpressionConfiguration.builder().evaluationValueConverter(ItemTypeValueConverter.getInstance()).build());
         return eval;
@@ -90,7 +90,7 @@ public class InitialValueFunction extends AbstractFunction implements JrxFunctio
                 return itemName == null || itemName.equals(item.getName());
             }
             @Override
-            public String getItem() {
+            public String getItemName() {
                 return itemName == null ? item.getName() : itemName;
             }
         });

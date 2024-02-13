@@ -11,9 +11,7 @@ import org.d71.jrulexpr.AbstractItemTest;
 import org.d71.jrulexpr.item.JrxItem;
 import org.d71.jrulexpr.item.JrxItemRegistry;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.openhab.automation.jrule.items.JRuleGroupItem;
 import org.openhab.automation.jrule.items.JRuleItem;
 import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
@@ -67,6 +65,6 @@ public class GroupFunctionTest extends AbstractItemTest {
 
         func.setParameters(groups);
 
-        assertEquals(groups.get(0), func.getRuleTrigger().get().getGroups().iterator().next());
+        assertEquals(groups.get(0), func.getRuleTrigger().get().getGroupNames().iterator().next());
     }
 }

@@ -119,6 +119,7 @@ public class ItemRuleGenerator {
             items.forEach(i -> LOGGER.debug("itm: {}, trItm: {}", new Object[] {item.getName(), i.getName()}));
         }
 
+        // items in xpr
         items.stream().filter(i -> i != item).forEach(i -> method.addAnnotation(
                 AnnotationSourceGenerator
                         .create(JRuleWhenItemChange.class)
@@ -126,6 +127,7 @@ public class ItemRuleGenerator {
 
         Set<JrxFunction<?>> functions = item.getFunctions();
 
+        // cron
         functions.stream()
                 .map(JrxFunction::getRuleTrigger)
                 .flatMap(Optional::stream)
@@ -137,10 +139,11 @@ public class ItemRuleGenerator {
                             .addParameter("cron", VariableSourceGenerator.create(c)));
                 });
 
+        // groups
         functions.stream()
                 .map(JrxFunction::getRuleTrigger)
                 .flatMap(Optional::stream)
-                .map(RuleTrigger::getGroups)
+                .map(RuleTrigger::getGroupNames)
                 .filter(Predicate.not(Set::isEmpty))
                 .flatMap(Collection::stream)
                 .forEach(g -> {
@@ -151,11 +154,12 @@ public class ItemRuleGenerator {
                     );
                 });
 
+        // on update
         functions.stream()
                 .map(JrxFunction::getRuleTrigger)
                 .flatMap(Optional::stream)
                 .filter(RuleTrigger::evaluateOnUpdate)
-                .map(RuleTrigger::getItem)
+                .map(RuleTrigger::getItemName)
                 .filter(item.getName()::equals)
                 .collect(Collectors.toSet()).forEach(i -> {
                    method.addAnnotation(AnnotationSourceGenerator
@@ -164,11 +168,12 @@ public class ItemRuleGenerator {
                    );
                 });
 
+        // on change
         functions.stream()
                 .map(JrxFunction::getRuleTrigger)
                 .flatMap(Optional::stream)
                 .filter(RuleTrigger::evaluateOnChange)
-                .map(RuleTrigger::getItem)
+                .map(RuleTrigger::getItemName)
                 .filter(item.getName()::equals)
                 .collect(Collectors.toSet()).forEach(i -> {
                     method.addAnnotation(AnnotationSourceGenerator
@@ -177,6 +182,7 @@ public class ItemRuleGenerator {
                     );
                 });
 
+        // on channel
         functions.stream()
                 .map(JrxFunction::getRuleTrigger)
                 .flatMap(Optional::stream)
