@@ -102,6 +102,11 @@ public class JrxExpression {
             try {
                 EvaluationValue evaluate = xpr.evaluate();
                 LOGGER.debug("xpr {} => {}", new Object[] { xpr.getExpressionString(), evaluate.getValue() });
+                if (LOGGER.isDebugEnabled() && evaluate.isBooleanValue() && !evaluate.getBooleanValue()) {
+                    values.forEach((k, v) -> { 
+                        LOGGER.debug("{} = {}", new Object[] {k, v}); 
+                    });
+                }
                 return evaluate.getValue();
             } catch (Exception e) {
                 throw new RuntimeException(e);
