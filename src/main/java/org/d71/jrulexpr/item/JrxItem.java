@@ -135,6 +135,11 @@ public class JrxItem {
         return getMetadataValue("jrxf").orElse(getTagValue("jrxf").orElse(null));
     }
 
+    public String getRuleClassName() {
+        String jrxc = getJrxc();
+        return jrxc == null ? item.getType() + "Rules" : jrxc;
+    }
+
     public Boolean evaluateJrxp() {
         Boolean jrxpEval = createJrxpItemExpression().evaluateToBoolean();
         LOGGER.debug("eval {} jrxp {} -> {}", new Object[] { getName(), getJrxp(), jrxpEval });
@@ -208,10 +213,8 @@ public class JrxItem {
         return new JrxfItemExpression(this);
     }
 
-    // private Optional<String> getMetadataValue(String meta, String name) {
-    // JRuleItemMetadata mdat= getMetadata().get(meta);
-    // return Optional.ofNullable(mdat == null ? null :
-    // (String)mdat.getConfiguration().get(name));
-    // }
+    private String getJrxc() {
+        return getMetadataValue("jrxc").orElse(getTagValue("jrxc").orElse(null));
+    }
 
 }

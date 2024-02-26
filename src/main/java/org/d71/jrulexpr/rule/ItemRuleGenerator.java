@@ -47,12 +47,13 @@ public class ItemRuleGenerator {
     }
 
     public void generate(JrxItem item) {
-        LOGGER.info("Generate rule for: " + item.getName() + " (" + item.getType() + ")");
+        String ruleClassName = item.getRuleClassName();
+        LOGGER.info("Generate rule for: " + item.getName() + " (" + item.getType() + ") in " + ruleClassName);
         try {
-            ClassSourceGenerator classSG = classes.get(item.getType());
+            ClassSourceGenerator classSG = classes.get(ruleClassName);
             if (classSG == null) {
                 classSG = createClass(item);
-                classes.put(item.getType(), classSG);
+                classes.put(ruleClassName, classSG);
             }
             FunctionSourceGenerator method = createMethod(classSG, item);
             createMethodAnnotations(method, item);
@@ -74,7 +75,7 @@ public class ItemRuleGenerator {
     }
 
     private ClassSourceGenerator createClass(JrxItem item) {
-        String name = item.getType() + "Rules";
+        String name = item.getRuleClassName();
         LOGGER.info("Creating new class: " + name);
         ClassSourceGenerator classSourceGenerator = ClassSourceGenerator
                 .create(TypeDeclarationSourceGenerator.create(name))
