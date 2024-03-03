@@ -1,12 +1,8 @@
 package org.d71.jrulexpr.function;
 
-import com.ezylang.evalex.EvaluationException;
-import com.ezylang.evalex.Expression;
-import com.ezylang.evalex.config.ExpressionConfiguration;
-import com.ezylang.evalex.data.EvaluationValue;
-import com.ezylang.evalex.functions.AbstractFunction;
-import com.ezylang.evalex.functions.FunctionParameter;
-import com.ezylang.evalex.parser.Token;
+import java.util.List;
+import java.util.Optional;
+
 import org.d71.jrulexpr.expression.ItemTypeValueConverter;
 import org.d71.jrulexpr.item.JrxItem;
 import org.d71.jrulexpr.item.JrxItemRegistry;
@@ -16,8 +12,13 @@ import org.openhab.automation.jrule.rules.value.JRuleValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Optional;
+import com.ezylang.evalex.EvaluationException;
+import com.ezylang.evalex.Expression;
+import com.ezylang.evalex.config.ExpressionConfiguration;
+import com.ezylang.evalex.data.EvaluationValue;
+import com.ezylang.evalex.functions.AbstractFunction;
+import com.ezylang.evalex.functions.FunctionParameter;
+import com.ezylang.evalex.parser.Token;
 
 @FunctionParameter(name = "item", isVarArg = true)
 public class InitialValueFunction extends AbstractFunction implements JrxFunction<Object> {

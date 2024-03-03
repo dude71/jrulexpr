@@ -1,11 +1,13 @@
 package org.d71.jrulexpr.item;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.commons.text.CaseUtils;
 import org.d71.jrulexpr.expression.JrxItemExpression;
@@ -136,8 +138,8 @@ public class JrxItem {
     }
 
     public String getRuleClassName() {
-        String jrxc = getJrxc();
-        return jrxc == null ? item.getType() + "Rules" : jrxc;
+        String clz = getJrxcValue("ruleClass");
+        return clz == null ? item.getType() + "Rules" : clz;
     }
 
     public Boolean evaluateJrxp() {
@@ -186,7 +188,7 @@ public class JrxItem {
 
         JRuleValue curr = getState();
 
-        if (curr == null || !curr.equals(value)) {
+        if (curr == null || !curr.equals(value) || forceCmd()) {
             item.sendUncheckedCommand(value);
         } else {
             LOGGER.info("skipping send on {} curr={} new={}", new Object[] { getName(), curr, value });
@@ -195,6 +197,19 @@ public class JrxItem {
 
     public String getRuleMethodName() {
         return CaseUtils.toCamelCase(getName(), false, '_', '-', ' ');
+    }
+
+    public String getJrxcValue(String config) {
+        String val = getJrxcConfigs().stream().filter(c -> c.matches("^" + config + "\s*=.*$")).findFirst().orElse(null);
+        if (val != null) {
+            val = val.replaceFirst(config + "\s*=\s*", "");
+        }
+        return val;
+    }
+
+    protected boolean forceCmd() {
+        String forceCmd = getJrxcValue("forceCmd");
+        return forceCmd != null && forceCmd.equalsIgnoreCase("true");
     }
 
     protected JrxItemExpression createJrxItemExpression() {
@@ -215,6 +230,11 @@ public class JrxItem {
 
     private String getJrxc() {
         return getMetadataValue("jrxc").orElse(getTagValue("jrxc").orElse(null));
+    }
+
+    private List<String> getJrxcConfigs() {
+        String jrxc = getJrxc();
+        return jrxc == null ? Collections.emptyList() : Stream.of(jrxc.split(",", -1)).map(String::trim).toList();
     }
 
 }
