@@ -94,7 +94,7 @@ public class JrxExpression {
     public Object evaluate() {
         Optional<Expression> optXpr = getExpression();
         if (optXpr.isPresent()) {
-            Expression xpr = getExpression().get();
+            Expression xpr = optXpr.get();
             // OpenJDK bug; null values in Map cause NullPointerException!
             //Map<String, JRuleValue> values = getItems().stream().collect(Collectors.toMap(JrxItem::getName, JrxItem::getState));
             Map<String, JRuleValue> values = getItems().stream().collect(HashMap::new, (m,v)->m.put(v.getName(), v.getState()), HashMap::putAll);

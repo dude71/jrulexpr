@@ -26,7 +26,7 @@ public class JrxRule extends JRule {
             JrxItem item = JrxItemRegistry.getInstance().getItem(itemName);
             item.setLastTriggeredBy(event);
             String methodName = item.getRuleMethodName();
-            LOGGER.info(">> {} triggered by {}", new Object[] {methodName, eventInfo(event)});
+            LOGGER.debug(">> {} triggered by {}", new Object[] {methodName, eventInfo(event)});
             
             item.evaluateNewValue().ifPresent(item::send);
         } catch (Exception e) {

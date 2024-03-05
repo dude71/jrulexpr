@@ -1,12 +1,13 @@
 package org.d71.jrulexpr.item;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.text.CaseUtils;
@@ -68,6 +69,10 @@ public class JrxItem {
 
     public JRuleItemMetadata getMetadataEntry(String meta) {
         return getMetadata().get(meta);
+    }
+
+    public Map<String, JRuleItemMetadata> getMetadataEntries(String regex) {
+        return getMetadata().entrySet().stream().filter(e -> e.getKey().matches(regex)).collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
 
     public Optional<String> getMetadataValue(String meta) {
@@ -205,6 +210,15 @@ public class JrxItem {
             val = val.replaceFirst(config + "\s*=\s*", "");
         }
         return val;
+    }
+
+    public Map<String, String> getJrxVars() {
+        Map<String, JRuleItemMetadata> metadataEntries = getMetadataEntries("jrx-\\S+");
+        return metadataEntries.entrySet().stream().collect(Collectors.toMap(Entry::getKey, e -> e.getValue().getValue()));
+    }
+
+    public Optional<String> getJrxVar(String name) {
+        return Optional.ofNullable(getJrxVars().get(name));
     }
 
     protected boolean forceCmd() {

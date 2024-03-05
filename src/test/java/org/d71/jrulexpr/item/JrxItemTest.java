@@ -2,8 +2,10 @@ package org.d71.jrulexpr.item;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
+import java.util.Map;
 
 import org.d71.jrulexpr.expression.AbstractJrxExpressionTest;
 import org.d71.jrulexpr.function.JrxFunctionRegistry;
@@ -64,6 +66,25 @@ public class JrxItemTest extends AbstractJrxExpressionTest {
         itm.getMetadata().put("jrxc", new JRuleItemMetadata("ruleClass=TestRules , x=b", Collections.emptyMap()));
         
         assertEquals("TestRules", itm.getRuleClassName());
+    }
+
+    @Test
+    public void getJrxVars() {
+        JrxItem itm = createMockedItem("X", CoreItemFactory.NUMBER, "1");
+        itm.getMetadata().put("jrx-my-expr", new JRuleItemMetadata("X == 1", Collections.emptyMap()));
+        itm.getMetadata().put("jrx-bla", new JRuleItemMetadata("10", Collections.emptyMap()));
+
+        Map<String, String> jrxVars = itm.getJrxVars();
+        assertEquals("X == 1", jrxVars.get("jrx-my-expr"));
+    }
+
+    @Test
+    public void getJrxVar() {
+        JrxItem itm = createMockedItem("X", CoreItemFactory.NUMBER, "1");
+        itm.getMetadata().put("jrx-my-expr", new JRuleItemMetadata("B > 0", Collections.emptyMap()));
+
+        assertTrue(itm.getJrxVar("jrx-abc").isEmpty());
+        assertEquals("B > 0", itm.getJrxVar("jrx-my-expr").get());
     }
 
 }

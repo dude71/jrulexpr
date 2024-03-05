@@ -4,8 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collections;
+
 import org.d71.jrulexpr.item.JrxItem;
 import org.junit.jupiter.api.Test;
+import org.openhab.automation.jrule.items.metadata.JRuleItemMetadata;
 import org.openhab.core.library.CoreItemFactory;
 
 public class JrxItemExpressionTest extends AbstractJrxExpressionTest {
@@ -52,6 +55,17 @@ public class JrxItemExpressionTest extends AbstractJrxExpressionTest {
 
         assertEquals(1, itm2.getTriggeringItems().size());
         assertEquals(itm1, itm2.getTriggeringItems().iterator().next());
+    }
+
+    @Test
+    public void evalJrxWithVar() {
+        createMockedItem("X", CoreItemFactory.NUMBER, "1");
+        JrxItem itm = createMockedItem("Z", CoreItemFactory.NUMBER, "1");
+        itm.getMetadata().put("jrx-my-expr", new JRuleItemMetadata("X > 0", Collections.emptyMap()));
+        itm.getMetadata().put("jrx", new JRuleItemMetadata("jrx-my-expr && 1 > 0", Collections.emptyMap()));
+
+        assertEquals("(X > 0) && 1 > 0", new JrxItemExpression(itm).getXpr());
+        assertTrue(itm.evaluateJrx());
     }
 
     private JrxItemExpression createJrxItemExpression(JrxItem item) {
