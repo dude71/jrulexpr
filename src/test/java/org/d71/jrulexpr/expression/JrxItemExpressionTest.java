@@ -1,6 +1,7 @@
 package org.d71.jrulexpr.expression;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -46,6 +47,15 @@ public class JrxItemExpressionTest extends AbstractJrxExpressionTest {
         JrxpItemExpression jrxp = new JrxpItemExpression(item, itemRegistry, functionRegistry);
 
         assertTrue((Boolean)jrxp.evaluate());
+    }
+
+    @Test
+    public void evalJrxpWithNullValue() {
+        createMockedItem("NITM", CoreItemFactory.STRING, null);
+        JrxItem item = createMockedItem("ITM", CoreItemFactory.NUMBER, null, "jrxp=NITM == \"txt\"", "jrx=true");
+        JrxpItemExpression jrxp = new JrxpItemExpression(item, itemRegistry, functionRegistry);
+
+        assertFalse(jrxp.evaluateToBoolean());
     }
 
     @Test
