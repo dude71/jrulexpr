@@ -6,6 +6,8 @@ import org.d71.jrulexpr.item.JrxItemRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,8 +25,14 @@ public class JrxpItemExpression extends AbstractJrxItemExpression {
 
     @Override
     public Boolean evaluateToBoolean() {
-        Set<JrxItem> nullItems = getItem().getTriggeringItems().stream().filter(i -> i.getState() == null && !i.equals(getItem())).collect(Collectors.toSet());
-        nullItems.stream().forEach(i -> LOGGER.info(">> {} is NULL !", new Object[]{ i.getName() }));
+        JrxItem item = getItem();
+        Set<String> allowNulls = item.getJrxcValues("allowNulls");
+        
+        Set<JrxItem> nullItems = item.getTriggeringItems().stream().filter(
+            i -> i.getState() == null && !i.getName().equals(item.getName()) && !allowNulls.contains(i.getName())
+        ).collect(Collectors.toSet());
+
+        nullItems.stream().forEach(i -> LOGGER.info(">> {} is NULL!", new Object[]{ i.getName() }));
         return nullItems.isEmpty() ? super.evaluateToBoolean() : false;
     }
 

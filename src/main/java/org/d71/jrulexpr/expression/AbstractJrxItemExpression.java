@@ -14,7 +14,7 @@ public abstract class AbstractJrxItemExpression extends JrxExpression {
     private final JrxItem item;
 
     private static String expandXpr(JrxItem item, String xpr) {
-        LOGGER.debug("expandXpr: item: {} xpr: {}", new Object[] { item.getName(), xpr });
+        LOGGER.trace("expandXpr: item: {} xpr: {}", new Object[] { item.getName(), xpr });
         String expanded = xpr;
         if (xpr != null) {
             for (Map.Entry<String, String> e : item.getJrxVars().entrySet()) {

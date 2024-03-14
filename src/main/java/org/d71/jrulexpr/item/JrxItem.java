@@ -4,9 +4,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -212,6 +212,18 @@ public class JrxItem {
         return val;
     }
 
+    public Set<String> getJrxcValues(String config) {
+        Set<String> rv;
+        String val = getJrxcValue(config);
+        if (val != null) {
+            val = val.replaceFirst("^'", "").replaceFirst("'$", "");
+            rv = Stream.of(val.split(",", -1)).map(String::trim).collect(Collectors.toSet());
+        } else {
+            rv = Collections.emptySet();
+        }
+        return rv;
+    }
+
     public Map<String, String> getJrxVars() {
         Map<String, JRuleItemMetadata> metadataEntries = getMetadataEntries("jrx-\\S+");
         return metadataEntries.entrySet().stream().collect(Collectors.toMap(Entry::getKey, e -> e.getValue().getValue()));
@@ -248,7 +260,8 @@ public class JrxItem {
 
     private List<String> getJrxcConfigs() {
         String jrxc = getJrxc();
-        return jrxc == null ? Collections.emptyList() : Stream.of(jrxc.split(",", -1)).map(String::trim).toList();
+        String regExCSV = ",(?=(?:[^\']*\'[^\']*\')*[^\']*$)";
+        return jrxc == null ? Collections.emptyList() : Stream.of(jrxc.split(regExCSV, -1)).map(String::trim).toList();
     }
 
 }

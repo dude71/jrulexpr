@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 
 import org.d71.jrulexpr.expression.AbstractJrxExpressionTest;
@@ -54,10 +56,11 @@ public class JrxItemTest extends AbstractJrxExpressionTest {
     @Test
     public void getJrxcValue() {
         JrxItem itm = createMockedItem("X", CoreItemFactory.NUMBER, "1");
-        itm.getMetadata().put("jrxc", new JRuleItemMetadata("ruleClass = TestRules, forceCmd=true", Collections.emptyMap()));
+        itm.getMetadata().put("jrxc", new JRuleItemMetadata("ruleClass = TestRules, forceCmd=true, allowNulls='X, Y'", Collections.emptyMap()));
         
         assertEquals("TestRules", itm.getJrxcValue("ruleClass"));
         assertEquals("true", itm.getJrxcValue("forceCmd"));
+        assertEquals(new HashSet<String>(Arrays.asList("X", "Y")), itm.getJrxcValues("allowNulls"));
     }
 
     @Test
