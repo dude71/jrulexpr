@@ -1,14 +1,5 @@
 package org.d71.jrulexpr.item;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-
 import org.d71.jrulexpr.expression.AbstractJrxExpressionTest;
 import org.d71.jrulexpr.function.JrxFunctionRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +11,10 @@ import org.openhab.automation.jrule.items.metadata.JRuleItemMetadata;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.library.CoreItemFactory;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class JrxItemTest extends AbstractJrxExpressionTest {
@@ -88,6 +83,17 @@ public class JrxItemTest extends AbstractJrxExpressionTest {
 
         assertTrue(itm.getJrxVar("jrx-abc").isEmpty());
         assertEquals("B > 0", itm.getJrxVar("jrx-my-expr").get());
+    }
+
+    @Test
+    public void getTriggeringItems() {
+        JrxItem itmX = createMockedItem("X", CoreItemFactory.NUMBER, "1");
+        JrxItem itmY = createMockedItem("Y", CoreItemFactory.NUMBER, "1");
+        itmX.getMetadata().put("jrx", new JRuleItemMetadata("X > 10 && Y == 1", Collections.emptyMap()));
+
+        Set<JrxItem> triggeringItems = itmX.getTriggeringItems();
+        assertTrue(triggeringItems.size() == 1); // itmX itself does not trigger
+        assertEquals(itmY, triggeringItems.iterator().next());
     }
 
 }

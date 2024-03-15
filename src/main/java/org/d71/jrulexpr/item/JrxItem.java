@@ -1,12 +1,7 @@
 package org.d71.jrulexpr.item;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,6 +27,23 @@ public class JrxItem {
 
     protected JrxItem(JRuleItem item) {
         this.item = item;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        JrxItem other = (JrxItem) obj;
+        return getName().equals(other.getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(item);
     }
 
     public List<String> getGroupNames() {
@@ -108,11 +120,13 @@ public class JrxItem {
     public Set<JrxItem> getTriggeringItems() {
         Set<JrxItem> items = new HashSet<>(createJrxItemExpression().getItems());
         items.addAll(createJrxpItemExpression().getItems());
+        items.remove(this); // item cannot trigger JrxRule itself
         return items;
     }
 
     public Set<JrxItem> getItems() {
-        Set<JrxItem> items = getTriggeringItems();
+        Set<JrxItem> items = new HashSet<>(createJrxItemExpression().getItems());
+        items.addAll(createJrxpItemExpression().getItems());
         items.addAll(createJrxtItemExpression().getItems());
         items.addAll(createJrxfItemExpression().getItems());
         return items;
@@ -149,25 +163,25 @@ public class JrxItem {
 
     public Boolean evaluateJrxp() {
         Boolean jrxpEval = createJrxpItemExpression().evaluateToBoolean();
-        LOGGER.debug("eval {} jrxp {} -> {}", new Object[] { getName(), getJrxp(), jrxpEval });
+        LOGGER.debug("eval {} jrxp {} -> {}", new Object[]{getName(), getJrxp(), jrxpEval});
         return jrxpEval;
     }
 
     public Boolean evaluateJrx() {
         Boolean jrxEval = createJrxItemExpression().evaluateToBoolean();
-        LOGGER.debug("eval {} jrx {} -> {}", new Object[] { getName(), getJrx(), jrxEval });
+        LOGGER.debug("eval {} jrx {} -> {}", new Object[]{getName(), getJrx(), jrxEval});
         return jrxEval;
     }
 
     public JRuleValue evaluateJrxf() {
         Object eval = createJrxfItemExpression().evaluate();
-        LOGGER.debug("eval {} jrxf {} -> {}", new Object[] { getName(), getJrxf(), eval });
+        LOGGER.debug("eval {} jrxf {} -> {}", new Object[]{getName(), getJrxf(), eval});
         return ValueConverter.convertToValue(eval, getType());
     }
 
     public JRuleValue evaluateJrxt() {
         Object eval = createJrxtItemExpression().evaluate();
-        LOGGER.debug("eval {} jrxt {} -> {}", new Object[] { getName(), getJrxt(), eval });
+        LOGGER.debug("eval {} jrxt {} -> {}", new Object[]{getName(), getJrxt(), eval});
         return ValueConverter.convertToValue(eval, getType());
     }
 
@@ -179,7 +193,7 @@ public class JrxItem {
             value = Optional.of(getJrx() == null || evaluateJrx() ? evaluateJrxt() : evaluateJrxf());
         } else {
             value = Optional.empty();
-            LOGGER.debug("-- pre condition {} NOT met for {}", new Object[] { getJrxp(), methodName });
+            LOGGER.debug("-- pre condition {} NOT met for {}", new Object[]{getJrxp(), methodName});
         }
         return value;
     }
@@ -189,14 +203,14 @@ public class JrxItem {
     }
 
     public void send(JRuleValue value) {
-        LOGGER.info("Command {} for item {} ({})", new Object[] { value, item.getName(), item.getType() });
+        LOGGER.info("Command {} for item {} ({})", new Object[]{value, item.getName(), item.getType()});
 
         JRuleValue curr = getState();
 
         if (curr == null || !curr.equals(value) || forceCmd()) {
             item.sendUncheckedCommand(value);
         } else {
-            LOGGER.info("skipping send on {} curr={} new={}", new Object[] { getName(), curr, value });
+            LOGGER.info("skipping send on {} curr={} new={}", new Object[]{getName(), curr, value});
         }
     }
 

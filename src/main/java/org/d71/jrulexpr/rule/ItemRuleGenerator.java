@@ -121,7 +121,7 @@ public class ItemRuleGenerator {
         }
 
         // items in xpr
-        items.stream().filter(i -> i != item).forEach(i -> method.addAnnotation(
+        items.stream().forEach(i -> method.addAnnotation(
                 AnnotationSourceGenerator
                         .create(JRuleWhenItemChange.class)
                         .addParameter("item", VariableSourceGenerator.create("\"" + i.getName() + "\""))));
