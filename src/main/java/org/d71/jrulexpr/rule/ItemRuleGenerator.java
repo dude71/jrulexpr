@@ -3,6 +3,7 @@ package org.d71.jrulexpr.rule;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -117,7 +118,7 @@ public class ItemRuleGenerator {
         Set<JrxItem> items = item.getTriggeringItems();
 
         if (LOGGER.isDebugEnabled()) {
-            items.forEach(i -> LOGGER.debug("itm: {}, trItm: {}", new Object[] {item.getName(), i.getName()}));
+            items.forEach(i -> LOGGER.debug("itm: {}, trItm: {}", new Object[] { item.getName(), i.getName() }));
         }
 
         // items in xpr
@@ -129,16 +130,23 @@ public class ItemRuleGenerator {
         Set<JrxFunction<?>> functions = item.getFunctions();
 
         // cron
+        Set<String> cronXprs = new HashSet<>();
+        String cron = item.getCron();
+        if (cron != null)
+            cronXprs.add(cron);
+
         functions.stream()
                 .map(JrxFunction::getRuleTrigger)
                 .flatMap(Optional::stream)
                 .map(RuleTrigger::getCronExpression)
                 .filter(Objects::nonNull)
-                .collect(Collectors.toSet()).forEach(c -> {
-                    method.addAnnotation(AnnotationSourceGenerator
-                            .create(JRuleWhenCronTrigger.class)
-                            .addParameter("cron", VariableSourceGenerator.create(c)));
-                });
+                .forEach(cronXprs::add);
+
+        cronXprs.forEach(c -> {
+            method.addAnnotation(AnnotationSourceGenerator
+                    .create(JRuleWhenCronTrigger.class)
+                    .addParameter("cron", VariableSourceGenerator.create(c)));
+        });
 
         // groups
         functions.stream()
@@ -151,8 +159,7 @@ public class ItemRuleGenerator {
                     method.addAnnotation(AnnotationSourceGenerator
                             .create(JRuleWhenItemReceivedUpdate.class)
                             .addParameter("item", VariableSourceGenerator.create("\"" + g + "\""))
-                            .addParameter("memberOf", VariableSourceGenerator.create("JRuleMemberOf.All"))
-                    );
+                            .addParameter("memberOf", VariableSourceGenerator.create("JRuleMemberOf.All")));
                 });
 
         // on update
@@ -163,10 +170,9 @@ public class ItemRuleGenerator {
                 .map(RuleTrigger::getItemName)
                 .filter(item.getName()::equals)
                 .collect(Collectors.toSet()).forEach(i -> {
-                   method.addAnnotation(AnnotationSourceGenerator
-                           .create(JRuleWhenItemReceivedUpdate.class)
-                           .addParameter("item", VariableSourceGenerator.create("\"" + i + "\""))
-                   );
+                    method.addAnnotation(AnnotationSourceGenerator
+                            .create(JRuleWhenItemReceivedUpdate.class)
+                            .addParameter("item", VariableSourceGenerator.create("\"" + i + "\"")));
                 });
 
         // on change
@@ -179,8 +185,7 @@ public class ItemRuleGenerator {
                 .collect(Collectors.toSet()).forEach(i -> {
                     method.addAnnotation(AnnotationSourceGenerator
                             .create(JRuleWhenItemChange.class)
-                            .addParameter("item", VariableSourceGenerator.create("\"" + i + "\""))
-                    );
+                            .addParameter("item", VariableSourceGenerator.create("\"" + i + "\"")));
                 });
 
         // on channel
@@ -191,9 +196,8 @@ public class ItemRuleGenerator {
                 .map(RuleTrigger::getChannel)
                 .forEach(c -> {
                     method.addAnnotation(AnnotationSourceGenerator
-                        .create(JRuleWhenChannelTrigger.class)
-                        .addParameter("channel", VariableSourceGenerator.create("\"" + c + "\""))
-                    );
+                            .create(JRuleWhenChannelTrigger.class)
+                            .addParameter("channel", VariableSourceGenerator.create("\"" + c + "\"")));
                 });
 
     }

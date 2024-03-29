@@ -247,6 +247,11 @@ public class JrxItem {
         return Optional.ofNullable(getJrxVars().get(name));
     }
 
+    public String getCron() {
+        String cron = getJrxcValue("cron");
+        return cron == null ? null : "\"" + cron + "\"";
+    }
+
     protected boolean forceCmd() {
         String forceCmd = getJrxcValue("forceCmd");
         return forceCmd != null && forceCmd.equalsIgnoreCase("true");
