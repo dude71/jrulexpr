@@ -210,7 +210,7 @@ public class JrxItem {
         if (curr == null || !curr.equals(value) || forceCmd()) {
             item.sendUncheckedCommand(value);
         } else {
-            LOGGER.info("skipping send on {} curr={} new={}", new Object[]{getName(), curr, value});
+            LOGGER.info("skip sending {} to {} (curr={})", new Object[]{value, getName(), curr});
         }
     }
 
