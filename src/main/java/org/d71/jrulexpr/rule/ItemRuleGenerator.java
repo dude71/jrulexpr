@@ -132,8 +132,9 @@ public class ItemRuleGenerator {
         // cron
         Set<String> cronXprs = new HashSet<>();
         String cron = item.getCron();
-        if (cron != null)
+        if (cron != null) {
             cronXprs.add(cron);
+        }
 
         functions.stream()
                 .map(JrxFunction::getRuleTrigger)

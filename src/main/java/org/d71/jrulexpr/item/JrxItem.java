@@ -249,6 +249,7 @@ public class JrxItem {
 
     public String getCron() {
         String cron = getJrxcValue("cron");
+        cron = cron == null ? null : cron.replaceFirst("^\'", "").replaceFirst("\'$", "");
         return cron == null ? null : "\"" + cron + "\"";
     }
 
