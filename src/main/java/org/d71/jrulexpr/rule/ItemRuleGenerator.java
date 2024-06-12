@@ -38,6 +38,7 @@ public class ItemRuleGenerator {
     // private static final String RULE_PKG =
     // "org.openhab.automation.jrule.generated.jrx";
     private static final String RULE_PATH = "../conf/automation/jrule/rules";
+    public static final String EVERY_MIN = "\"0 * * * * *\"";
     // private static final String RULE_PATH = "../conf/automation/jrule/gen";
 
     private Map<String, ClassSourceGenerator> classes = new HashMap<>();
@@ -142,6 +143,11 @@ public class ItemRuleGenerator {
                 .map(RuleTrigger::getCronExpression)
                 .filter(Objects::nonNull)
                 .forEach(cronXprs::add);
+
+        if (cronXprs.contains(EVERY_MIN)) { // TODO when crons smaller than every min
+            cronXprs.clear();
+            cronXprs.add(EVERY_MIN);
+        }
 
         cronXprs.forEach(c -> {
             method.addAnnotation(AnnotationSourceGenerator
