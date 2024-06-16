@@ -100,7 +100,9 @@ public class JrxExpression {
             Map<String, JRuleValue> values = getItems().stream().collect(HashMap::new, (m,v)->m.put(v.getName(), v.getState()), HashMap::putAll);
             xpr.withValues(values);
             try {
+                LOGGER.debug("evaluating xpr={}", xpr);
                 EvaluationValue evaluate = xpr.evaluate();
+                LOGGER.debug("evaluated xpr={}", xpr);
                 LOGGER.debug("xpr {} => {}", new Object[] { xpr.getExpressionString(), evaluate.getValue() });
                 if (LOGGER.isDebugEnabled() && evaluate.isBooleanValue() && !evaluate.getBooleanValue()) {
                     values.forEach((k, v) -> { 

@@ -1,7 +1,9 @@
 package org.d71.jrulexpr.function;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.d71.jrulexpr.expression.ItemTypeValueConverter;
 import org.d71.jrulexpr.item.JrxItem;
@@ -83,13 +85,14 @@ public class InitialValueFunction extends AbstractFunction implements JrxFunctio
     }
 
     @Override
-    public Optional<RuleTrigger> getRuleTrigger() {
-        return Optional.of(new RuleTrigger() {
+    public Set<RuleTrigger> getRuleTriggers() {
+        return Collections.singleton(new RuleTrigger() {
             @Override
             public boolean evaluateOnChange() {
                 // only when itemName of function "call" equals jrx item add JRule OnUpdate trigger
                 return itemName == null || itemName.equals(item.getName());
             }
+
             @Override
             public String getItemName() {
                 return itemName == null ? item.getName() : itemName;

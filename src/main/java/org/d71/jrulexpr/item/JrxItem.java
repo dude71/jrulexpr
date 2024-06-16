@@ -46,6 +46,18 @@ public class JrxItem {
         return Objects.hash(item);
     }
 
+    public boolean stateEquals(Object otherState) {
+        if (this == otherState)
+            return true;
+        if (otherState == null)
+            return false;
+        if (getState() == null)
+            return false;
+        if (getState().getClass() != otherState.getClass())
+            return false;
+        return getState().equals(otherState);
+    }
+
     public List<String> getGroupNames() {
         // JRuleItem.getGroupItems throws JRuleItemNotFoundException when group not
         // defined as Group item in OH!

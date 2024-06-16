@@ -37,7 +37,7 @@ public class JrxItemExpressionTest extends AbstractJrxExpressionTest {
                 "jrx=nItem1 == 10 && HOUR() < 25", "jrxt=2");
 
         assertTrue(item.getFunctions().size() == 1);
-        assertTrue(item.getFunctions().iterator().next().getRuleTrigger().get().getCronExpression() != null);
+        assertTrue(item.getFunctions().iterator().next().getRuleTriggers().iterator().next().getCronExpression() != null);
         assertNotEquals(item.getState(), item.evaluateNewValue().get());
     }
 
