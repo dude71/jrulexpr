@@ -1,7 +1,9 @@
 package org.d71.jrulexpr.function;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.d71.jrulexpr.item.JrxItem;
 import org.d71.jrulexpr.rule.RuleTrigger;
@@ -37,8 +39,8 @@ public class ChannelFunction extends AbstractFunction implements JrxFunction<Str
     }
 
     @Override
-    public Optional<RuleTrigger> getRuleTrigger() {
-        return channel == null ? Optional.empty() : Optional.of(new RuleTrigger() {
+    public Set<RuleTrigger> getRuleTriggers() {
+        return channel == null ? Collections.emptySet() : Collections.singleton(new RuleTrigger() {
             public String getChannel() {
                 return channel;
             }

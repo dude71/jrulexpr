@@ -138,8 +138,8 @@ public class ItemRuleGenerator {
         }
 
         functions.stream()
-                .map(JrxFunction::getRuleTrigger)
-                .flatMap(Optional::stream)
+                .map(JrxFunction::getRuleTriggers)
+                .flatMap(Set::stream)
                 .map(RuleTrigger::getCronExpression)
                 .filter(Objects::nonNull)
                 .forEach(cronXprs::add);
@@ -157,8 +157,8 @@ public class ItemRuleGenerator {
 
         // groups
         functions.stream()
-                .map(JrxFunction::getRuleTrigger)
-                .flatMap(Optional::stream)
+                .map(JrxFunction::getRuleTriggers)
+                .flatMap(Set::stream)
                 .map(RuleTrigger::getGroupNames)
                 .filter(Predicate.not(Set::isEmpty))
                 .flatMap(Collection::stream)
@@ -171,11 +171,11 @@ public class ItemRuleGenerator {
 
         // on update
         functions.stream()
-                .map(JrxFunction::getRuleTrigger)
-                .flatMap(Optional::stream)
+                .map(JrxFunction::getRuleTriggers)
+                .flatMap(Set::stream)
                 .filter(RuleTrigger::evaluateOnUpdate)
                 .map(RuleTrigger::getItemName)
-                .filter(item.getName()::equals)
+                //.filter(item.getName()::equals)
                 .collect(Collectors.toSet()).forEach(i -> {
                     method.addAnnotation(AnnotationSourceGenerator
                             .create(JRuleWhenItemReceivedUpdate.class)
@@ -184,8 +184,8 @@ public class ItemRuleGenerator {
 
         // on change
         functions.stream()
-                .map(JrxFunction::getRuleTrigger)
-                .flatMap(Optional::stream)
+                .map(JrxFunction::getRuleTriggers)
+                .flatMap(Set::stream)
                 .filter(RuleTrigger::evaluateOnChange)
                 .map(RuleTrigger::getItemName)
                 .filter(item.getName()::equals)
@@ -197,8 +197,8 @@ public class ItemRuleGenerator {
 
         // on channel
         functions.stream()
-                .map(JrxFunction::getRuleTrigger)
-                .flatMap(Optional::stream)
+                .map(JrxFunction::getRuleTriggers)
+                .flatMap(Set::stream)
                 .filter(t -> t.getChannel() != null)
                 .map(RuleTrigger::getChannel)
                 .forEach(c -> {

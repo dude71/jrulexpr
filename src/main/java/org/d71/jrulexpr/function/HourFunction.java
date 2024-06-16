@@ -2,7 +2,9 @@ package org.d71.jrulexpr.function;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 
 import org.d71.jrulexpr.rule.RuleTrigger;
 
@@ -19,8 +21,8 @@ public class HourFunction extends AbstractFunction implements JrxFunction<BigDec
     }
 
     @Override
-    public Optional<RuleTrigger> getRuleTrigger() {
-        return Optional.of(new RuleTrigger() {
+    public Set<RuleTrigger> getRuleTriggers() {
+        return Collections.singleton(new RuleTrigger() {
             public String getCronExpression() {
                 return "\"0 0 * * * *\"";
             }

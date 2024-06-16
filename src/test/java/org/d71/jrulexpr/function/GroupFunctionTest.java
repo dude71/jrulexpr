@@ -65,6 +65,6 @@ public class GroupFunctionTest extends AbstractItemTest {
 
         func.setParameters(groups);
 
-        assertEquals(groups.get(0), func.getRuleTrigger().get().getGroupNames().iterator().next());
+        assertEquals(groups.get(0), func.getRuleTriggers().iterator().next().getGroupNames().iterator().next());
     }
 }

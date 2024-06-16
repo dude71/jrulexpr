@@ -8,7 +8,9 @@ import org.d71.jrulexpr.rule.RuleTrigger;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 
 public class MinuteFunction  extends AbstractFunction implements JrxFunction<BigDecimal> {
     @Override
@@ -17,8 +19,8 @@ public class MinuteFunction  extends AbstractFunction implements JrxFunction<Big
     }
 
     @Override
-    public Optional<RuleTrigger> getRuleTrigger() {
-        return Optional.of(new RuleTrigger() {
+    public Set<RuleTrigger> getRuleTriggers() {
+        return Collections.singleton(new RuleTrigger() {
             public String getCronExpression() {
                 return "\"0 * * * * *\"";
             }
