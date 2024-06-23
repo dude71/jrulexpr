@@ -35,7 +35,7 @@ public class MinuteFunction  extends AbstractFunction implements JrxFunction<Big
     @Override
     public void setParameters(List<Object> values) {
         if (values.size() > 0) {
-            trigger = (Boolean)values.get(0);
+            trigger = Boolean.valueOf((String)values.get(0));
         }
     }
 
