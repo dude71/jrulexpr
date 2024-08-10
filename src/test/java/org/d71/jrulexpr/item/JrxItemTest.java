@@ -51,11 +51,10 @@ public class JrxItemTest extends AbstractJrxExpressionTest {
     @Test
     public void getJrxcValue() {
         JrxItem itm = createMockedItem("X", CoreItemFactory.NUMBER, "1");
-        itm.getMetadata().put("jrxc", new JRuleItemMetadata("ruleClass = TestRules, forceCmd=true, allowNulls='X, Y'", Collections.emptyMap()));
+        itm.getMetadata().put("jrxc", new JRuleItemMetadata("ruleClass = TestRules, forceCmd=true", Collections.emptyMap()));
         
         assertEquals("TestRules", itm.getJrxcValue("ruleClass"));
         assertEquals("true", itm.getJrxcValue("forceCmd"));
-        assertEquals(new HashSet<String>(Arrays.asList("X", "Y")), itm.getJrxcValues("allowNulls"));
     }
 
     @Test

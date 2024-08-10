@@ -24,12 +24,11 @@ public class JrxpItemExpression extends AbstractJrxItemExpression {
     public Boolean evaluateToBoolean() {
         JrxItem item = getItem();
         LOGGER.info("{} jrxp={} jrx={}", new Object[] { item.getName(), this.getXpr(), item.getJrx() });
-        Set<String> allowNulls = item.getJrxcValues("allowNulls");
-        
-        Set<JrxItem> nullItems = item.getTriggeringItems().stream().filter(i -> i.getState() == null && !allowNulls.contains(i.getName())).collect(Collectors.toSet());
 
+        Set<JrxItem> nullItems = item.getTriggeringItems().stream().filter(i -> i.getState() == null).collect(Collectors.toSet());
         nullItems.stream().forEach(i -> LOGGER.info(">> {} is NULL!", new Object[]{ i.getName() }));
-        return nullItems.isEmpty() ? super.evaluateToBoolean() : false;
+
+        return super.evaluateToBoolean();
     }
 
     @Override
