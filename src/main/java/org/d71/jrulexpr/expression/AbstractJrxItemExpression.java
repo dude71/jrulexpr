@@ -14,7 +14,7 @@ public abstract class AbstractJrxItemExpression extends JrxExpression {
     private final JrxItem item;
 
     private static String expandXpr(JrxItem item, String xpr) {
-        LOGGER.trace("expandXpr: item: {} xpr: {}", new Object[] { item.getName(), xpr });
+        LOGGER.trace("expandXpr: item: {} xpr: {}", new Object[]{item.getName(), xpr});
         String expanded = xpr;
         if (xpr != null) {
             for (Map.Entry<String, String> e : item.getJrxVars().entrySet()) {
@@ -31,7 +31,7 @@ public abstract class AbstractJrxItemExpression extends JrxExpression {
     }
 
     AbstractJrxItemExpression(JrxItem item, String xpr, JrxItemRegistry itemRegistry,
-            JrxFunctionRegistry functionRegistry) {
+                              JrxFunctionRegistry functionRegistry) {
         super(expandXpr(item, xpr), itemRegistry, functionRegistry);
         this.item = item;
     }
@@ -48,9 +48,13 @@ public abstract class AbstractJrxItemExpression extends JrxExpression {
     }
 
     public Boolean evaluateToBoolean() {
-        Object eval = evaluate();
-        if (eval instanceof Boolean)
-            return (Boolean) eval;
+        try {
+            Object eval = evaluate();
+            if (eval instanceof Boolean)
+                return (Boolean) eval;
+        } catch (Exception e) {
+            throw new RuntimeException(item.getName() + "." + getXpr() + " " + e.getMessage());
+        }
         throw new IllegalStateException(item.getName() + "." + getXpr() + " does not evaluate to Boolean!");
     }
 }
