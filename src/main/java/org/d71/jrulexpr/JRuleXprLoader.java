@@ -15,7 +15,7 @@ public class JRuleXprLoader extends JRule {
 
     private synchronized static void load() {
         LOGGER.info("JRuleXpr.load loaded=" + loaded);
-        if (!loaded && !forceRulesReload()) {
+        if (!loaded || forceRulesReload()) {
             JRuleXpr.getInstance().generateItemRules();
             loaded = true;
             JRuleXpr.getInstance().unload();
@@ -30,7 +30,7 @@ public class JRuleXprLoader extends JRule {
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
         }
-        LOGGER.info("JRuleXpr.rulesExist=" + rv);
+        LOGGER.info("JRuleXpr.forceRulesReload=" + rv);
         return rv;
     }
 }
