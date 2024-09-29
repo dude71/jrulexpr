@@ -15,19 +15,18 @@ public class JRuleXprLoader extends JRule {
 
     private synchronized static void load() {
         LOGGER.info("JRuleXpr.load loaded=" + loaded);
-        if (!loaded && !rulesExist()) {
+        if (!loaded && !forceRulesReload()) {
             JRuleXpr.getInstance().generateItemRules();
             loaded = true;
             JRuleXpr.getInstance().unload();
         }
     }
 
-    private static boolean rulesExist() {
+    private static boolean forceRulesReload() {
         boolean rv = false;
         try {
-            // TODO read generated classes from items
-            Class.forName("org.openhab.automation.jrule.rules.user.generated.NetRules", false, JRuleXprLoader.class.getClassLoader());
-            rv = true;
+            Class loaderClazz = Class.forName("org.openhab.automation.jrule.rules.user.JRuleXprLoader", false, JRuleXprLoader.class.getClassLoader());
+            rv = loaderClazz.getResource("/jrulexpr-reload") != null || loaderClazz.getResource("/generated/jrulexpr-reload") != null;
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
         }
