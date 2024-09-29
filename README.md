@@ -1,1 +1,1 @@
-JRuleXpr!
+JRuleXpr, OpenHab JRule item expressions!
