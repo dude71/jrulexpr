@@ -98,7 +98,9 @@ public class JrxExpression {
                 //LOGGER.debug("evaluating xpr={}", xpr);
                 EvaluationValue evaluate = xpr.evaluate();
                 //LOGGER.debug("evaluated xpr={}", xpr);
-                LOGGER.debug("xpr {} => {}", new Object[] { xpr.getExpressionString(), evaluate.getValue() });
+                String clz = getClass().getSimpleName();
+                String type = clz.contains("Item") ? clz.substring(0, clz.indexOf("I")).toLowerCase() : "jrx";
+                LOGGER.debug("{}: {} => {}", new Object[] { type, xpr.getExpressionString(), evaluate.getValue() });
                 if (LOGGER.isDebugEnabled() && evaluate.isBooleanValue() && !evaluate.getBooleanValue()) {
                     values.forEach((k, v) -> { 
                         LOGGER.debug("{} = {}", new Object[] {k, v}); 
@@ -127,7 +129,6 @@ public class JrxExpression {
     protected JrxFunction<? extends Object> prepareFunctionInstance(JrxFunction<? extends Object> f) {
         return f;
     }
-
 
     private Set<JrxFunction<?>> getUniqFunctionInstances() {
         return xpr == null ? Collections.emptySet()

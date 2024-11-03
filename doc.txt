@@ -16,6 +16,7 @@ scp target/jrulexpr-1.0-SNAPSHOT.jar root@hub.ha:/tmp/jrulexpr/lib/
 # deps seperate:
 mvn dependency:copy-dependencies
 scp target/dependency/* openhab@hub.ha:/opt/oh/conf/automation/jrule/ext-lib
+!! scp target/dependency/jrule-4.0.0-SNAPSHOT.jar openhab@hub.ha:/opt/oh/addons !!
 
 # loading by openhab
 
@@ -99,3 +100,8 @@ execute phase
 - send cmd when needed OR force it
 - avoid having to use == \"ON\" -> just == ON
 
+# Null handling
+
+- allowNulls -list- X
+- allowNullsAll X
+- COALESCE
