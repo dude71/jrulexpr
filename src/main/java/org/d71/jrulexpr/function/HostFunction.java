@@ -21,7 +21,16 @@ public class HostFunction extends AbstractFunction implements JrxFunction<Boolea
 
     @Override
     public Boolean getValue(Object... parameters) {
-        return hostReachable((String)parameters[0]);
+        String host = (String) parameters[0];
+        boolean p = hostReachable(host);
+        if (!p) {
+            try {
+                Thread.sleep(2000);
+                p = hostReachable(host);
+            } catch (InterruptedException e) {
+            }
+        }
+        return p;
     }
 
     @Override
