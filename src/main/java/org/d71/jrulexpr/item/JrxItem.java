@@ -80,7 +80,7 @@ public class JrxItem {
         Optional<String> tagVal = getTags().stream()
                 .filter(t -> t.matches("^" + tagName + "\s*=.*$"))
                 .findFirst();
-        return tagVal.isPresent() ? Optional.of(tagVal.get().replaceFirst(tagName + "\s*=", "")) : tagVal;
+        return tagVal.map(s -> s.replaceFirst(tagName + "\s*=", ""));
     }
 
     public void setTagValue(String tagName, String value) {

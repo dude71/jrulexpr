@@ -3,12 +3,7 @@ package org.d71.jrulexpr.item;
 import java.math.BigDecimal;
 import java.util.Date;
 
-import org.openhab.automation.jrule.rules.value.JRuleDateTimeValue;
-import org.openhab.automation.jrule.rules.value.JRuleDecimalValue;
-import org.openhab.automation.jrule.rules.value.JRuleOnOffValue;
-import org.openhab.automation.jrule.rules.value.JRulePercentValue;
-import org.openhab.automation.jrule.rules.value.JRuleStringValue;
-import org.openhab.automation.jrule.rules.value.JRuleValue;
+import org.openhab.automation.jrule.rules.value.*;
 import org.openhab.core.library.CoreItemFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +33,8 @@ public class ValueConverter {
             rv = new JRuleDateTimeValue(new Date(((BigDecimal) object).longValue()));
         } else if (CoreItemFactory.STRING.equals(itemType)) {
             rv = new JRuleStringValue((String) object);
+        } else if (CoreItemFactory.COLOR.equals(itemType)) {
+            rv = new JRuleHsbValue((String) object);
         } else {
             LOGGER.warn("Cannot convert object {} to value!", new Object[] { object });
         }
