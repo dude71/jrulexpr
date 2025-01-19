@@ -57,7 +57,7 @@ public class JRuleXprLoader extends JRule {
     private static boolean forceRulesReload() {
         boolean rv = false;
         try {
-            Class<?> loaderClazz = Class.forName("org.openhab.automation.jrule.rules.user.JRuleXprLoader", false, JRuleXprLoader.class.getClassLoader());
+            Class<?> loaderClazz = Class.forName("org.openhab.automation.jrule.rules.user.generated.JRuleXprLoader", false, JRuleXprLoader.class.getClassLoader());
             rv = loaderClazz.getResource("jrulexpr-reload") != null || loaderClazz.getResource("generated/jrulexpr-reload") != null;
         } catch (Exception e) {
             LOGGER.error(e.getMessage());

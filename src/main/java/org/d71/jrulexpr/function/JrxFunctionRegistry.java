@@ -23,6 +23,7 @@ public class JrxFunctionRegistry {
             registry.register(MinuteFunction.class);
             registry.register(NowFunction.class);
             registry.register(SubStrFunction.class);
+            registry.register(TagValFunction.class);
         }
         return registry;
     }

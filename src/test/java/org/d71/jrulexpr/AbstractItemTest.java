@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.openhab.automation.jrule.items.JRuleGroupItem;
 import org.openhab.automation.jrule.items.JRuleItem;
 import org.openhab.automation.jrule.items.metadata.JRuleItemMetadata;
+import org.openhab.automation.jrule.rules.value.JRuleDateTimeValue;
 import org.openhab.automation.jrule.rules.value.JRuleDecimalValue;
 import org.openhab.automation.jrule.rules.value.JRuleOnOffValue;
 import org.openhab.automation.jrule.rules.value.JRulePercentValue;
@@ -72,6 +73,9 @@ public abstract class AbstractItemTest {
             }
             else if (CoreItemFactory.SWITCH.equals(type)) {
                 Mockito.lenient().when(jrItm.getState()).thenReturn(JRuleOnOffValue.getValueFromString(value));
+            }
+            else if (CoreItemFactory.DATETIME.equals(type)) {
+                Mockito.lenient().when(jrItm.getState()).thenReturn(new JRuleDateTimeValue(value));
             }
 
             Mockito.lenient().when(jrItm.getTags()).thenReturn(Arrays.asList(tags));

@@ -99,6 +99,7 @@ execute phase
 - setting override
 - send cmd when needed OR force it
 - avoid having to use == \"ON\" -> just == ON
+- create DATE(dt-string) function returning epoch
 
 # Null handling
 

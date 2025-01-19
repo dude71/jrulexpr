@@ -15,6 +15,7 @@ public abstract class AbstractJrxExpressionTest extends AbstractItemTest {
         createMockedItem("nItem2", CoreItemFactory.NUMBER, "20");
         createMockedItem("sItem1", CoreItemFactory.STRING, "item1");
         createMockedItem("sItem2", CoreItemFactory.STRING, "item2");
+        createMockedItem("dtItem1", CoreItemFactory.DATETIME, "2025-01-01T00:00");
     }
 
     JrxExpression createJrxExpression(String xpr) {

@@ -68,6 +68,12 @@ public class JrxExpressionTest extends AbstractJrxExpressionTest {
     }
 
     @Test
+    public void evaluateDates() {
+        jrxExpression = createJrxExpression("NOW() > dtItem1");
+        assertTrue((Boolean)jrxExpression.evaluate());
+    }
+
+    @Test
     public void evaluateNumberFunctions() {
         jrxExpression = createJrxExpression("HOUR() + HOUR()");
 
