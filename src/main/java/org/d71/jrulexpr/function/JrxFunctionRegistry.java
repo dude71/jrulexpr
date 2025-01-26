@@ -24,6 +24,7 @@ public class JrxFunctionRegistry {
             registry.register(NowFunction.class);
             registry.register(SubStrFunction.class);
             registry.register(TagValFunction.class);
+            registry.register(TriggeredByFunction.class);
         }
         return registry;
     }
