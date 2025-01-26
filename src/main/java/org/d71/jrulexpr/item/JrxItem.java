@@ -265,6 +265,12 @@ public class JrxItem {
         return cron == null ? null : "\"" + cron + "\"";
     }
 
+    public Set<String> getNoTrigger() {
+        String noTrig = getJrxcValue("noTrigger");
+        noTrig = noTrig == null ? null : noTrig.replaceFirst("^\'", "").replaceFirst("\'$", "");
+        return noTrig == null ? Collections.emptySet() : Set.of(noTrig.split(",\\W*"));
+    }
+
     protected boolean forceCmd() {
         String forceCmd = getJrxcValue("forceCmd");
         return forceCmd != null && forceCmd.equalsIgnoreCase("true");

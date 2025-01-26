@@ -85,6 +85,16 @@ public class JrxItemTest extends AbstractJrxExpressionTest {
     }
 
     @Test
+    public void getNoTrigger() {
+        JrxItem itmX = createMockedItem("X", CoreItemFactory.NUMBER, "1");
+        JrxItem itmY = createMockedItem("Y", CoreItemFactory.NUMBER, "1");
+        itmX.getMetadata().put("jrxc", new JRuleItemMetadata("noTrigger='X,Y, Z,A'"));
+        final String[] expected = {"X", "Y", "Z", "A"};
+        final Set<String> actual = itmX.getNoTrigger();
+        assertTrue(expected.length == actual.size() && actual.containsAll(Arrays.asList(expected)));
+    }
+
+    @Test
     public void getTriggeringItems() {
         JrxItem itmX = createMockedItem("X", CoreItemFactory.NUMBER, "1");
         JrxItem itmY = createMockedItem("Y", CoreItemFactory.NUMBER, "1");

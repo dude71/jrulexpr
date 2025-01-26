@@ -116,7 +116,8 @@ public class ItemRuleGenerator {
     private void createMethodAnnotations(FunctionSourceGenerator method, JrxItem item) throws Exception {
         LOGGER.debug("Creating method annotations for item " + item.getName());
 
-        Set<JrxItem> items = item.getTriggeringItems();
+        Set<String> noTrigger = item.getNoTrigger();
+        Set<JrxItem> items = item.getTriggeringItems().stream().filter(i -> !noTrigger.contains(i.getName())).collect(Collectors.toSet());
 
         if (LOGGER.isDebugEnabled()) {
             items.forEach(i -> LOGGER.debug("itm: {}, trItm: {}", new Object[] { item.getName(), i.getName() }));
