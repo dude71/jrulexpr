@@ -50,7 +50,7 @@ public class ValueConverter {
         else if (value instanceof JRulePercentValue)
             obj = BigDecimal.valueOf(((JRulePercentValue) value).intValue());
         else if (value instanceof JRuleDateTimeValue)
-            obj = BigDecimal.valueOf(((JRuleDateTimeValue) value).getValue().toEpochSecond());
+            obj = BigDecimal.valueOf(((JRuleDateTimeValue) value).getValue().toInstant().toEpochMilli());
         else if (value instanceof JRuleStringValue)
             obj = value.stringValue();
         else
