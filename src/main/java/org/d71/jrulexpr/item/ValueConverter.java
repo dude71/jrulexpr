@@ -17,6 +17,8 @@ public class ValueConverter {
             object = BigDecimal.valueOf(Integer.parseInt(value));
         } else if (CoreItemFactory.NUMBER.equals(itemType)) {
             object = BigDecimal.valueOf(Double.parseDouble(value));
+        } else if (CoreItemFactory.SWITCH.equals(itemType)) {
+            object = JRuleOnOffValue.valueOf(value);
         } // TODO rest
         return object == null ? null : convertToValue(object, itemType);
     }
