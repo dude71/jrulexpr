@@ -7,9 +7,13 @@ import com.ezylang.evalex.functions.AbstractFunction;
 import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 import org.d71.jrulexpr.item.JrxItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @FunctionParameter(name = "tagName")
 public class TagValFunction extends AbstractFunction implements JrxFunction<String> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TagValFunction.class);
+
     private JrxItem item;
 
     @Override
@@ -24,7 +28,9 @@ public class TagValFunction extends AbstractFunction implements JrxFunction<Stri
 
     @Override
     public String getValue(Object... parameters) {
-       return parameters.length > 0 ? item.getTagValue((String) parameters[0]).orElse(null) : null;
+        String val = parameters.length > 0 ? item.getTagValue((String) parameters[0]).orElse(null) : null;
+        LOGGER.trace("value: " + val);
+        return val;
     }
 
     @Override
