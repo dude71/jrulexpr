@@ -35,7 +35,8 @@ public class TagValFunction extends AbstractFunction implements JrxFunction<Stri
 
     @Override
     public EvaluationValue evaluate(Expression expression, Token token, EvaluationValue... parameters) throws EvaluationException {
-        return EvaluationValue.stringValue(getValue(parameters[0].getStringValue()));
+        String value = getValue(parameters[0].getStringValue());
+        return value == null ? EvaluationValue.NULL_VALUE : EvaluationValue.stringValue(value);
     }
 
 }
