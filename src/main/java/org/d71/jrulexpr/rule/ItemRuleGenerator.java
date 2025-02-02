@@ -120,6 +120,7 @@ public class ItemRuleGenerator {
         Set<JrxItem> items = item.getTriggeringItems().stream().filter(i -> !noTrigger.contains(i.getName())).collect(Collectors.toSet());
 
         if (LOGGER.isDebugEnabled()) {
+            noTrigger.forEach(n -> LOGGER.debug("noTrigger itm: {}", new Object[] { n }));
             items.forEach(i -> LOGGER.debug("itm: {}, trItm: {}", new Object[] { item.getName(), i.getName() }));
         }
 
@@ -177,6 +178,7 @@ public class ItemRuleGenerator {
                 .filter(RuleTrigger::evaluateOnUpdate)
                 .map(RuleTrigger::getItemName)
                 //.filter(item.getName()::equals)
+                .filter(Predicate.not(noTrigger::contains))
                 .collect(Collectors.toSet()).forEach(i -> {
                     method.addAnnotation(AnnotationSourceGenerator
                             .create(JRuleWhenItemReceivedUpdate.class)
@@ -190,6 +192,7 @@ public class ItemRuleGenerator {
                 .filter(RuleTrigger::evaluateOnChange)
                 .map(RuleTrigger::getItemName)
                 .filter(item.getName()::equals)
+                .filter(Predicate.not(noTrigger::contains))
                 .collect(Collectors.toSet()).forEach(i -> {
                     method.addAnnotation(AnnotationSourceGenerator
                             .create(JRuleWhenItemChange.class)
