@@ -19,26 +19,22 @@ public class JRuleXprLoader extends JRule {
     private static final String NR_JRX_LOADED = "NR_JRX_LOADED";
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(JRuleXprLoader.class);
-    protected static int startupWaitMs = 1000;
 
-    static {
-        LOGGER.info("JRuleXpr loading..");
-        load();
-    }
-
-    private static boolean startupWait() {
+    private static boolean startupWait(int startupWaitMs) {
         try {
             LOGGER.info("JRuleXpr.startupWait " + startupWaitMs + " ms..");
-            Thread.sleep(startupWaitMs);
+            if (startupWaitMs > 0) {
+                Thread.sleep(startupWaitMs);
+            }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
         return true;
     }
 
-    private synchronized static void load() {
+    protected synchronized static void load(int startupWaitMs) {
         LOGGER.info("JRuleXpr.load loaded=" + loaded);
-        if (!loaded && (!rulesExist() && startupWait() || forceRulesReload())) {
+        if (!loaded && (!rulesExist() && startupWait(startupWaitMs) || forceRulesReload())) {
             storeJrxLoaded(0);
             JRuleXpr.getInstance().generateItemRules();
             loaded = true;
