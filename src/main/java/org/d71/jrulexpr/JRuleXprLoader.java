@@ -12,20 +12,33 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class JRuleXprLoader extends JRule {
-    private static final Logger LOGGER = LoggerFactory.getLogger(JRuleXprLoader.class);
-    public static final String NR_JRX_LOADED = "NR_JRX_LOADED";
     private static boolean loaded = false;
+    private static final String NR_JRX_LOADED = "NR_JRX_LOADED";
+
+    protected static final Logger LOGGER = LoggerFactory.getLogger(JRuleXprLoader.class);
+    protected static int startupWaitMs = 1000;
 
     static {
         LOGGER.info("JRuleXpr loading..");
         load();
     }
 
+    private static boolean startupWait() {
+        try {
+            LOGGER.info("JRuleXpr.startupWait " + startupWaitMs + " ms..");
+            Thread.sleep(startupWaitMs);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return true;
+    }
+
     private synchronized static void load() {
         LOGGER.info("JRuleXpr.load loaded=" + loaded);
-        if (!loaded && (!rulesExist() || forceRulesReload())) {
+        if (!loaded && (!rulesExist() && startupWait() || forceRulesReload())) {
             storeJrxLoaded(0);
             JRuleXpr.getInstance().generateItemRules();
             loaded = true;
