@@ -22,7 +22,7 @@ import com.ezylang.evalex.parser.Token;
 @FunctionParameter(name = "duration")
 public class MinTimeFunction extends AbstractFunction implements JrxFunction<Boolean> {
     private static final Logger LOGGER = LoggerFactory.getLogger(MinTimeFunction.class);
-    private static Map<String, JRuleTimer> timers = new HashMap<>();
+    private static final Map<String, JRuleTimer> timers = new HashMap<>();
 
     private JrxItem item;
 
@@ -50,7 +50,7 @@ public class MinTimeFunction extends AbstractFunction implements JrxFunction<Boo
             synchronized (timers) {
                 timer = timers.get(ruleName);
 
-                if (timer != null && timer.isDone()) { // call from timer function (done)
+                if (timer != null && timer.isDone()) {
                     LOGGER.debug("timer {} expired!", new Object[] { timerName(timer) });
                     return true;
                 }
@@ -117,35 +117,23 @@ public class MinTimeFunction extends AbstractFunction implements JrxFunction<Boo
 
     private Consumer<JRuleTimer> timerAction(String ruleName, Duration duration) {
         return t -> {
+            LOGGER.trace("ta: timer {}, item {}, state {}",
+                    new Object[] { timerName(t), item.getName(), item.getState() });
+
             boolean clear = false;
 
-            // jrxp true, jrx true -> resched, nop
-            // jrxp true, jrx false -> stop, set new state
-            // jrxp false -> stop, nop
-
             try {
-                // Optional<State> newState = item.evaluateNewState();
-                Boolean jrxp = item.evaluateJrxp();
-
-                LOGGER.trace("ta: timer {}, item {}, state {}, jrxp {}={}",
-                        new Object[] { timerName(t), item.getName(), item.getState(), item.getJrxp(), jrxp });
-
-                if (jrxp) {
-                    Boolean jrx = item.evaluateJrx();
-                    if (jrx) {
-                        // jrxp met and jrx action condition still applies
-                        LOGGER.debug("ta: rescheduling timer {}, done={}, running={} AFTER timeout", new Object[] {timerName(t), t.isDone(), t.isRunning()});
-                        rescheduleTimer(ruleName, t, duration);
-                    } else {
-                        clear = true;
-                        JRuleValue newState = item.evaluateJrxf();
-                        LOGGER.debug("ta: timer {} action cmd={} for {}",
-                                new Object[] { timerName(t), newState, item.getName() });
-                        item.send(newState);
-                    }
+                Boolean jrx = item.evaluateJrx();
+                if (jrx) {
+                    // jrxp met and jrx action condition still applies
+                    LOGGER.debug("ta: rescheduling timer {}, done={}, running={} AFTER timeout", new Object[] {timerName(t), t.isDone(), t.isRunning()});
+                    rescheduleTimer(ruleName, t, duration);
                 } else {
                     clear = true;
-                    LOGGER.warn("ta: ending timer {}, jrxp={} without action!", new Object[] { timerName(t), item.getJrxp() });
+                    JRuleValue newState = item.evaluateJrxf();
+                    LOGGER.debug("ta: timer {} action cmd={} for {}",
+                            new Object[] { timerName(t), newState, item.getName() });
+                    item.send(newState);
                 }
             } finally {
                 if (clear) {
