@@ -49,11 +49,6 @@ public class MinTimeFunction extends AbstractFunction implements JrxFunction<Boo
 
             synchronized (timers) {
                 timer = timers.get(ruleName);
-
-                if (timer != null && timer.isDone()) {
-                    LOGGER.debug("timer {} expired!", new Object[] { timerName(timer) });
-                    return true;
-                }
             }
 
             Boolean jrxEval = item.evaluateJrx();
