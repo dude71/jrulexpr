@@ -133,7 +133,8 @@ public class MinTimeFunction extends AbstractFunction implements JrxFunction<Boo
             } finally {
                 if (clear) {
                     synchronized (timers) {
-                        t.cancel();
+                        //t.cancel();
+                        JRuleTimerHandler.get().cancelTimer(ruleName);
                         timers.remove(ruleName);
                         LOGGER.debug("ta: timer {} removed, #timers {}", new Object[]{timerName(t), timers.size()});
                     }

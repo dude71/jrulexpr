@@ -40,11 +40,11 @@ public class LockFunction extends AbstractFunction implements JrxFunction<Boolea
     public EvaluationValue evaluate(Expression expression, Token functionToken, EvaluationValue... parameterValues)
             throws EvaluationException {
 
-        boolean notLocked = getValue(parameterValues.length == 1 ? parameterValues[0].getNumberValue().intValue() : 1);
+        boolean gotLock = getValue(parameterValues.length == 1 ? parameterValues[0].getNumberValue().intValue() : 1);
 
-        LOGGER.debug(ruleName + ": locked=" + !notLocked);
+        LOGGER.debug(ruleName + ": got lock=" + gotLock);
 
-        return EvaluationValue.booleanValue(notLocked);
+        return EvaluationValue.booleanValue(gotLock);
     }
 
     
