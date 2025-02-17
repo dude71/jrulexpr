@@ -46,7 +46,7 @@ public class JRuleXprLoader extends JRule {
                 }
             };
             Timer timer = new Timer("jrxStateTimer");
-            timer.schedule(task, 9000);
+            timer.schedule(task, 12000); // TODO make dependent on # of rules generated
         }
     }
 
