@@ -7,6 +7,8 @@ import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 import org.d71.jrulexpr.item.JrxItem;
 import org.d71.jrulexpr.item.ValueConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.openhab.automation.jrule.rules.value.JRuleValue;
 
 import java.util.Optional;
