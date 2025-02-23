@@ -18,10 +18,13 @@ public class JrxFunctionRegistry {
             registry.register(HostFunction.class);
             registry.register(HourFunction.class);
             registry.register(InitialValueFunction.class);
+            registry.register(LastChangeFunction.class);
             registry.register(LockFunction.class);
             registry.register(MinTimeFunction.class);
             registry.register(MinuteFunction.class);
             registry.register(NowFunction.class);
+            registry.register(PreviousValueFunction.class);
+            registry.register(SleepFunction.class);
             registry.register(SubStrFunction.class);
             registry.register(TagValFunction.class);
             registry.register(TriggeredByFunction.class);

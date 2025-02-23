@@ -13,14 +13,14 @@ import com.ezylang.evalex.data.conversion.EvaluationValueConverterIfc;
 public class ItemTypeValueConverter implements EvaluationValueConverterIfc {
     private static ItemTypeValueConverter instance;
 
-    public static final synchronized ItemTypeValueConverter getInstance() {
+    public static synchronized ItemTypeValueConverter getInstance() {
         if (instance == null) {
             instance = new ItemTypeValueConverter();
         }
         return instance;
     }
 
-    private EvaluationValueConverterIfc defaultConverter = new DefaultEvaluationValueConverter();
+    private final EvaluationValueConverterIfc defaultConverter = new DefaultEvaluationValueConverter();
 
     @Override
     public EvaluationValue convertObject(Object object, ExpressionConfiguration configuration) {

@@ -87,6 +87,11 @@ public class JrxItem {
         getTags().add(tagName + "=" + value);
     }
 
+    public void removeTag(String tagName) {
+        Optional<String> tagVal = getTagValue(tagName);
+        tagVal.ifPresent(s -> item.getTags().remove(tagName + "=" + s));
+    }
+
     public Map<String, JRuleItemMetadata> getMetadata() {
         return item.getMetadata();
     }
