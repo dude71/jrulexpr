@@ -29,13 +29,13 @@ public class PreviousValueFunction extends AbstractItemChangeFunction<JRuleValue
     public JRuleValue getValue(Object... parameters) {
         String itemName = (String) parameters[0];
         JrxItem item = itemName.equals(this.item.getName()) ? this.item : itemRegistry.getItem(itemName);
-        LOGGER.debug("item " + item.getName());
+        LOGGER.debug("item: " + item.getName());
         JRuleValue state = item.getState();
         JRuleValue prevState;
 
         Optional<String> optVal = item.getTagValue(PREV_VAL);
         if (optVal.isPresent()) {
-            LOGGER.debug("Prev state " + optVal.get());
+            LOGGER.debug("Prev state: " + optVal.get());
             prevState = ValueConverter.convertStringToValue(optVal.get(), item.getType());
             if (this.item == item && (state == null || !state.equals(prevState))) {
                 setPreviousValue(item); // set new prevVal

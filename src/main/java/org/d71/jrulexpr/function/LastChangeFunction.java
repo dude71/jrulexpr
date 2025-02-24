@@ -10,12 +10,15 @@ import org.d71.jrulexpr.item.JrxItem;
 import org.openhab.automation.jrule.rules.event.JRuleEvent;
 import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
 import org.openhab.automation.jrule.rules.value.JRuleValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
 @FunctionParameter(name = "item", isVarArg = true)
 public class LastChangeFunction extends AbstractItemChangeFunction<Long> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(LastChangeFunction.class);
     private static final String CHANGE_EPOCH = "changeEpoch";
 
     @Override
@@ -28,9 +31,11 @@ public class LastChangeFunction extends AbstractItemChangeFunction<Long> {
         String itemName = (String) parameters[0];
         JrxItem item = itemName.equals(this.item.getName()) ? this.item : itemRegistry.getItem(itemName);
         Long lastCh;
+        LOGGER.debug("item: " + item.getName());
 
         Optional<String> optEp = item.getTagValue(CHANGE_EPOCH);
         if (optEp.isPresent()) {
+            LOGGER.debug("Last ch: " + optEp.get());
             lastCh = Long.parseLong(optEp.get());
             setLastChange(item);
         } else {
@@ -50,7 +55,9 @@ public class LastChangeFunction extends AbstractItemChangeFunction<Long> {
         if (this.item == item) {
             JRuleEvent evt = item.getLastTriggeredBy();
             if (evt instanceof JRuleItemEvent && ((JRuleItemEvent)evt).getItem().equals(item)) {
-                item.setTagValue(CHANGE_EPOCH, String.valueOf(ZonedDateTime.now().toInstant().toEpochMilli()));
+                String ep = String.valueOf(ZonedDateTime.now().toInstant().toEpochMilli());
+                LOGGER.debug("set tag: " + CHANGE_EPOCH + " to " + ep);
+                item.setTagValue(CHANGE_EPOCH, ep);
             }
         }
     }
