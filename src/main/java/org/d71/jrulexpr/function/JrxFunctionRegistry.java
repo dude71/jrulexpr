@@ -24,6 +24,7 @@ public class JrxFunctionRegistry {
             registry.register(MinuteFunction.class);
             registry.register(NowFunction.class);
             registry.register(PreviousValueFunction.class);
+            registry.register(SelfTriggered.class);
             registry.register(SleepFunction.class);
             registry.register(SubStrFunction.class);
             registry.register(TagValFunction.class);
