@@ -7,6 +7,8 @@ import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 import org.d71.jrulexpr.item.JrxItem;
 import org.d71.jrulexpr.item.ValueConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.openhab.automation.jrule.rules.value.JRuleValue;
 
 import java.util.Optional;
@@ -15,6 +17,7 @@ import static java.time.ZonedDateTime.now;
 
 @FunctionParameter(name = "item", isVarArg = true)
 public class PreviousValueFunction extends AbstractItemChangeFunction<JRuleValue> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PreviousValueFunction.class);
     private static final String PREV_VAL = "previousVal";
 
     @Override
@@ -26,11 +29,13 @@ public class PreviousValueFunction extends AbstractItemChangeFunction<JRuleValue
     public JRuleValue getValue(Object... parameters) {
         String itemName = (String) parameters[0];
         JrxItem item = itemName.equals(this.item.getName()) ? this.item : itemRegistry.getItem(itemName);
+        LOGGER.debug("item " + item.getName());
         JRuleValue state = item.getState();
         JRuleValue prevState;
 
         Optional<String> optVal = item.getTagValue(PREV_VAL);
         if (optVal.isPresent()) {
+            LOGGER.debug("Prev state " + optVal.get());
             prevState = ValueConverter.convertStringToValue(optVal.get(), item.getType());
             if (this.item == item && (state == null || !state.equals(prevState))) {
                 setPreviousValue(item); // set new prevVal
@@ -55,8 +60,10 @@ public class PreviousValueFunction extends AbstractItemChangeFunction<JRuleValue
             JRuleValue state = item.getState();
             String value = state == null ? null : state.stringValue();
             if (value == null) {
+                LOGGER.debug("remove tag " + PREV_VAL);
                 item.removeTag(PREV_VAL);
             } else {
+                LOGGER.debug("set tag " + PREV_VAL + " to " + value);
                 item.setTagValue(PREV_VAL, value);
             }
             long epochMilli = now().toInstant().toEpochMilli();
