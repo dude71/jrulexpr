@@ -16,8 +16,8 @@ import java.util.Optional;
 import static java.time.ZonedDateTime.now;
 
 @FunctionParameter(name = "item", isVarArg = true)
-public class PreviousValueFunction extends AbstractItemChangeFunction<JRuleValue> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PreviousValueFunction.class);
+public class PreviousValue extends AbstractItemChangeFunction<JRuleValue> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PreviousValue.class);
     private static final String PREV_VAL = "previousVal";
 
     @Override

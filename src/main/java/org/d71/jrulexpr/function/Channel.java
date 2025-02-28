@@ -2,7 +2,6 @@ package org.d71.jrulexpr.function;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.d71.jrulexpr.item.JrxItem;
@@ -19,8 +18,8 @@ import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 
 @FunctionParameter(name = "channel")
-public class ChannelFunction extends AbstractFunction implements JrxFunction<String> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChannelFunction.class);
+public class Channel extends AbstractFunction implements JrxFunction<String> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Channel.class);
     
     private String channel;
 

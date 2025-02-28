@@ -3,13 +3,11 @@ package org.d71.jrulexpr.function;
 import com.ezylang.evalex.EvaluationException;
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.data.EvaluationValue;
-import com.ezylang.evalex.functions.AbstractFunction;
 import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 import org.d71.jrulexpr.item.JrxItem;
 import org.openhab.automation.jrule.rules.event.JRuleEvent;
 import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
-import org.openhab.automation.jrule.rules.value.JRuleValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,8 +15,8 @@ import java.time.ZonedDateTime;
 import java.util.Optional;
 
 @FunctionParameter(name = "item", isVarArg = true)
-public class LastChangeFunction extends AbstractItemChangeFunction<Long> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LastChangeFunction.class);
+public class LastChange extends AbstractItemChangeFunction<Long> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(LastChange.class);
     private static final String CHANGE_EPOCH = "changeEpoch";
 
     @Override
@@ -53,8 +51,7 @@ public class LastChangeFunction extends AbstractItemChangeFunction<Long> {
 
     private void setLastChange(JrxItem item) {
         if (this.item == item) {
-            JRuleEvent evt = item.getLastTriggeredBy();
-            if (evt instanceof JRuleItemEvent && ((JRuleItemEvent)evt).getItem().equals(item)) {
+            if (itemTriggered()) {
                 String ep = String.valueOf(ZonedDateTime.now().toInstant().toEpochMilli());
                 LOGGER.debug("set tag: " + CHANGE_EPOCH + " to " + ep);
                 item.setTagValue(CHANGE_EPOCH, ep);

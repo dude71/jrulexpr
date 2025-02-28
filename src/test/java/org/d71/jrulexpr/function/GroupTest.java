@@ -18,11 +18,11 @@ import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
 import org.openhab.core.items.ItemNotFoundException;
 import org.openhab.core.library.CoreItemFactory;
 
-public class GroupFunctionTest extends AbstractItemTest {
+public class GroupTest extends AbstractItemTest {
     @Test
     public void testGetValueGroupTrigger() {
         // SUT
-        GroupFunction func = new GroupFunction();
+        Group func = new Group();
 
         JrxItem itm = createMockedItem("item", CoreItemFactory.NUMBER, "1");
 
@@ -40,7 +40,7 @@ public class GroupFunctionTest extends AbstractItemTest {
     @Test
     public void testGetValueNonGroupTrigger() throws ItemNotFoundException {
         // SUT
-        GroupFunction func = new GroupFunction();
+        Group func = new Group();
         JrxItemRegistry itemReg = Mockito.mock(JrxItemRegistry.class);
         func.setItemRegistry(itemReg);
 
@@ -59,7 +59,7 @@ public class GroupFunctionTest extends AbstractItemTest {
     @Test
     public void testGetRuleTrigger() {
         // SUT
-        GroupFunction func = new GroupFunction();
+        Group func = new Group();
 
         List<Object> groups = Arrays.asList("group");
 

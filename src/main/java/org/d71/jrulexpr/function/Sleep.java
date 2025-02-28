@@ -8,7 +8,7 @@ import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 
 @FunctionParameter(name = "millis")
-public class SleepFunction extends AbstractFunction implements JrxFunction<Boolean> {
+public class Sleep extends AbstractFunction implements JrxFunction<Boolean> {
 
     @Override
     public String getToken() {

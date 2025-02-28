@@ -11,8 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @FunctionParameter(name = "tagName")
-public class TagValFunction extends AbstractFunction implements JrxFunction<String> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TagValFunction.class);
+public class TagVal extends AbstractFunction implements JrxFunction<String> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TagVal.class);
 
     private JrxItem item;
 

@@ -9,7 +9,7 @@ import org.d71.jrulexpr.item.JrxItem;
 import org.openhab.automation.jrule.rules.event.JRuleEvent;
 import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
 
-public class TriggeredByFunction extends AbstractFunction implements JrxFunction<String> {
+public class TriggeredBy extends AbstractFunction implements JrxFunction<String> {
     private JrxItem item;
 
     @Override

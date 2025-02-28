@@ -2,7 +2,6 @@ package org.d71.jrulexpr.function;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.d71.jrulexpr.item.JrxItem;
@@ -19,7 +18,7 @@ import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 
 @FunctionParameter(name = "group")
-public class GroupFunction extends AbstractFunction implements JrxFunction<Boolean> { // group change triggered
+public class Group extends AbstractFunction implements JrxFunction<Boolean> { // group change triggered
     private JrxItem item;
 
     private JrxItemRegistry itemRegistry;

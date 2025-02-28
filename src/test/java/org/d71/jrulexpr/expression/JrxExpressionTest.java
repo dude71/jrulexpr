@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 
-import org.d71.jrulexpr.function.HourFunction;
+import org.d71.jrulexpr.function.Hour;
 import org.junit.jupiter.api.Test;
 import org.openhab.core.library.CoreItemFactory;
 
@@ -77,7 +77,7 @@ public class JrxExpressionTest extends AbstractJrxExpressionTest {
     public void evaluateNumberFunctions() {
         jrxExpression = createJrxExpression("HOUR() + HOUR()");
 
-        assertEquals((new HourFunction()).getValue().intValue(), ((BigDecimal)jrxExpression.evaluate()).intValue() / 2);
+        assertEquals((new Hour()).getValue().intValue(), ((BigDecimal)jrxExpression.evaluate()).intValue() / 2);
     }
 
     @Test

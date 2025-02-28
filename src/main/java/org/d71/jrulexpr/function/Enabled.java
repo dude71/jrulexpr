@@ -14,14 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @FunctionParameter(name = "swItemName")
 @FunctionParameter(name = "swOverrideItemName", isVarArg = true)
-public class EnabledFunction extends AbstractFunction implements JrxFunction<Boolean> {
+public class Enabled extends AbstractFunction implements JrxFunction<Boolean> {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
     private Set<String> params;
 

@@ -11,7 +11,7 @@ import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 
 @FunctionParameter(name = "hostOrIp")
-public class HostFunction extends AbstractFunction implements JrxFunction<Boolean> {
+public class Host extends AbstractFunction implements JrxFunction<Boolean> {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     @Override

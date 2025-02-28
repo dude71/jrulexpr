@@ -11,11 +11,10 @@ import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @FunctionParameter(name = "trigger", isVarArg = true)
-public class MinuteFunction  extends AbstractFunction implements JrxFunction<BigDecimal> {
+public class Minute extends AbstractFunction implements JrxFunction<BigDecimal> {
     private boolean trigger = true;
 
     @Override

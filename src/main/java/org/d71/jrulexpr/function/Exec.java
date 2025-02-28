@@ -13,7 +13,7 @@ import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 
 @FunctionParameter(name = "cmd")
-public class ExecFunction extends AbstractFunction implements JrxFunction<String> {
+public class Exec extends AbstractFunction implements JrxFunction<String> {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     @Override

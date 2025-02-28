@@ -4,6 +4,9 @@ import com.ezylang.evalex.functions.AbstractFunction;
 import org.d71.jrulexpr.item.JrxItem;
 import org.d71.jrulexpr.item.JrxItemRegistry;
 import org.d71.jrulexpr.rule.RuleTrigger;
+import org.openhab.automation.jrule.items.JRuleItem;
+import org.openhab.automation.jrule.rules.event.JRuleEvent;
+import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
 
 import java.util.Collections;
 import java.util.List;
@@ -46,6 +49,11 @@ public abstract class AbstractItemChangeFunction<V> extends AbstractFunction imp
                 return itemName == null ? item.getName() : itemName;
             }
         });
+    }
+
+    protected boolean itemTriggered() {
+        JRuleEvent evt = item == null ? null : item.getLastTriggeredBy();
+        return evt instanceof JRuleItemEvent jrEvt && item.getName().equals(jrEvt.getItem().getName());
     }
 
 }

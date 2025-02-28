@@ -3,7 +3,6 @@ package org.d71.jrulexpr.function;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.Set;
 
 import org.d71.jrulexpr.rule.RuleTrigger;
@@ -13,7 +12,7 @@ import com.ezylang.evalex.data.EvaluationValue;
 import com.ezylang.evalex.functions.AbstractFunction;
 import com.ezylang.evalex.parser.Token;
 
-public class HourFunction extends AbstractFunction implements JrxFunction<BigDecimal> {
+public class Hour extends AbstractFunction implements JrxFunction<BigDecimal> {
 
     @Override
     public String getToken() {

@@ -9,7 +9,7 @@ import com.ezylang.evalex.data.EvaluationValue;
 import com.ezylang.evalex.functions.AbstractFunction;
 import com.ezylang.evalex.parser.Token;
 
-public class NowFunction extends AbstractFunction implements JrxFunction<Long> {
+public class Now extends AbstractFunction implements JrxFunction<Long> {
 
     @Override
     public EvaluationValue evaluate(Expression arg0, Token arg1, EvaluationValue... arg2) throws EvaluationException {

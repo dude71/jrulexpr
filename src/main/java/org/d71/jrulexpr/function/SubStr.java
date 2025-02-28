@@ -12,7 +12,7 @@ import com.ezylang.evalex.parser.Token;
 @FunctionParameter(name = "string")
 @FunctionParameter(name = "start")
 @FunctionParameter(name = "end")
-public class SubStrFunction extends AbstractFunction implements JrxFunction<String> {
+public class SubStr extends AbstractFunction implements JrxFunction<String> {
     @Override
     public String getToken() {
         return "SUBSTR";

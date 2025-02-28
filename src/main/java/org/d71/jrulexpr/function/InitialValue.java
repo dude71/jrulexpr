@@ -23,8 +23,8 @@ import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 
 @FunctionParameter(name = "item", isVarArg = true)
-public class InitialValueFunction extends AbstractFunction implements JrxFunction<Object> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(InitialValueFunction.class);
+public class InitialValue extends AbstractFunction implements JrxFunction<Object> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(InitialValue.class);
     private static final String INITIAL_VAL = "initialVal";
     public static final String JRX = "jrx";
     private JrxItem item;

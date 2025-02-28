@@ -11,24 +11,24 @@ public class JrxFunctionRegistry {
     public static synchronized JrxFunctionRegistry getInstance() {
         if (registry == null) {
             registry = new JrxFunctionRegistry();
-            registry.register(ChannelFunction.class);
-            registry.register(EnabledFunction.class);
-            registry.register(ExecFunction.class);
-            registry.register(GroupFunction.class);
-            registry.register(HostFunction.class);
-            registry.register(HourFunction.class);
-            registry.register(InitialValueFunction.class);
-            registry.register(LastChangeFunction.class);
-            registry.register(LockFunction.class);
-            registry.register(MinTimeFunction.class);
-            registry.register(MinuteFunction.class);
-            registry.register(NowFunction.class);
-            registry.register(PreviousValueFunction.class);
+            registry.register(Channel.class);
+            registry.register(Enabled.class);
+            registry.register(Exec.class);
+            registry.register(Group.class);
+            registry.register(Host.class);
+            registry.register(Hour.class);
+            registry.register(InitialValue.class);
+            registry.register(LastChange.class);
+            registry.register(Lock.class);
+            registry.register(MinTime.class);
+            registry.register(Minute.class);
+            registry.register(Now.class);
+            registry.register(PreviousValue.class);
             registry.register(SelfTriggered.class);
-            registry.register(SleepFunction.class);
-            registry.register(SubStrFunction.class);
-            registry.register(TagValFunction.class);
-            registry.register(TriggeredByFunction.class);
+            registry.register(Sleep.class);
+            registry.register(SubStr.class);
+            registry.register(TagVal.class);
+            registry.register(TriggeredBy.class);
         }
         return registry;
     }

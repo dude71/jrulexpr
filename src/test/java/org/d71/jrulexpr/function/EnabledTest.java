@@ -5,16 +5,15 @@ import org.d71.jrulexpr.item.JrxItem;
 import org.d71.jrulexpr.item.JrxItemRegistry;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.openhab.automation.jrule.rules.value.JRuleOnOffValue;
 import org.openhab.core.library.CoreItemFactory;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class EnabledFunctionTest  extends AbstractItemTest {
+public class EnabledTest extends AbstractItemTest {
     @Test
     public void testEnabledWithOverride() {
-        EnabledFunction func = new EnabledFunction();
+        Enabled func = new Enabled();
         JrxItemRegistry itemReg = Mockito.mock(JrxItemRegistry.class);
         func.setItemRegistry(itemReg);
 
@@ -28,7 +27,7 @@ public class EnabledFunctionTest  extends AbstractItemTest {
 
     @Test
     public void testEnabledWithOverrideOff() {
-        EnabledFunction func = new EnabledFunction();
+        Enabled func = new Enabled();
         JrxItemRegistry itemReg = Mockito.mock(JrxItemRegistry.class);
         func.setItemRegistry(itemReg);
 
@@ -42,7 +41,7 @@ public class EnabledFunctionTest  extends AbstractItemTest {
 
     @Test
     public void testEnabledWithNoOverride() {
-        EnabledFunction func = new EnabledFunction();
+        Enabled func = new Enabled();
         JrxItemRegistry itemReg = Mockito.mock(JrxItemRegistry.class);
         func.setItemRegistry(itemReg);
 

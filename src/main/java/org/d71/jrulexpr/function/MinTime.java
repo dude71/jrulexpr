@@ -20,8 +20,8 @@ import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 
 @FunctionParameter(name = "duration")
-public class MinTimeFunction extends AbstractFunction implements JrxFunction<Boolean> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MinTimeFunction.class);
+public class MinTime extends AbstractFunction implements JrxFunction<Boolean> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MinTime.class);
     private static final Map<String, JRuleTimer> timers = new HashMap<>();
 
     private JrxItem item;
