@@ -11,14 +11,8 @@ import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SelfTriggered  extends AbstractFunction implements JrxFunction<Boolean> {
+public class SelfTriggered  extends AbstractItemChangeFunction<Boolean>  {
     private static final Logger LOGGER = LoggerFactory.getLogger(SelfTriggered.class);
-    private JrxItem item;
-
-    @Override
-    public void setItem(JrxItem item) {
-        this.item = item;
-    }
 
     @Override
     public String getToken() {
@@ -27,12 +21,8 @@ public class SelfTriggered  extends AbstractFunction implements JrxFunction<Bool
 
     @Override
     public Boolean getValue(Object... parameters) {
-        JRuleEvent event = item.getLastTriggeredBy();
         LOGGER.debug(("item: " + item.getName()));
-        if (event instanceof JRuleItemEvent itemEvent) {
-            LOGGER.debug("evt item: " + itemEvent.getItem().getName());
-        }
-        return event instanceof JRuleItemEvent itemEvent && item.getName().equals( itemEvent.getItem().getName());
+        return selfTriggered();
     }
 
     @Override

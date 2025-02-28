@@ -6,8 +6,6 @@ import com.ezylang.evalex.data.EvaluationValue;
 import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 import org.d71.jrulexpr.item.JrxItem;
-import org.openhab.automation.jrule.rules.event.JRuleEvent;
-import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +49,7 @@ public class LastChange extends AbstractItemChangeFunction<Long> {
 
     private void setLastChange(JrxItem item) {
         if (this.item == item) {
-            if (itemTriggered()) {
+            if (selfTriggered()) {
                 String ep = String.valueOf(ZonedDateTime.now().toInstant().toEpochMilli());
                 LOGGER.debug("set tag: " + CHANGE_EPOCH + " to " + ep);
                 item.setTagValue(CHANGE_EPOCH, ep);
