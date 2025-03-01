@@ -100,7 +100,7 @@ public class JrxExpression {
                 //LOGGER.debug("evaluated xpr={}", xpr);
                 String clz = getClass().getSimpleName();
                 String type = clz.contains("Item") ? clz.substring(0, clz.indexOf("I")).toLowerCase() : "jrx";
-                LOGGER.debug("{}: {} => {}", new Object[] { type, xpr.getExpressionString(), evaluate.getValue() });
+                LOGGER.debug("| {} | {} => {}", new Object[] { type, xpr.getExpressionString(), evaluate.getValue() });
                 if (LOGGER.isDebugEnabled() && evaluate.isBooleanValue() && !evaluate.getBooleanValue()) {
                     values.forEach((k, v) -> { 
                         LOGGER.debug("{} = {}", new Object[] {k, v}); 
