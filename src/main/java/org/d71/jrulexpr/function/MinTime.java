@@ -63,7 +63,7 @@ public class MinTime extends AbstractFunction implements JrxFunction<Boolean> {
                     timer = JRuleTimerHandler.get().createTimer(ruleName, duration, timerAction(ruleName, duration),
                             null);
                     timers.put(ruleName, timer);
-                    LOGGER.debug("(" + System.identityHashCode(this) + "/" + System.identityHashCode(timers) + ") created timer {}, #timers {}", new Object[]{timerName(timer), timers.size()});
+                    LOGGER.debug("(" + System.identityHashCode(this) + "/" + System.identityHashCode(timers) + ") created timer {}, duration {}, #timers {}", new Object[]{timerName(timer), duration, timers.size()});
                 }
             } else {
                 LOGGER.debug("timer {}, done: {}, running: {}",
@@ -95,14 +95,6 @@ public class MinTime extends AbstractFunction implements JrxFunction<Boolean> {
                 : new Number[0];
 
         return EvaluationValue.booleanValue(getValue(param));
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        LOGGER.trace("Cleanup (" + System.identityHashCode(this) + "/" + System.identityHashCode(timers) + "), item: " + item.getName());
-        timers.values().forEach(this::cancelTimer);
-        timers.clear();
-        super.finalize();
     }
 
     private String timerName(JRuleTimer t) {
