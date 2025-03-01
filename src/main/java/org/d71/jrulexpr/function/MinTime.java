@@ -120,7 +120,7 @@ public class MinTime extends AbstractFunction implements JrxFunction<Boolean> {
             boolean cancelled = JRuleTimerHandler.get().cancelTimer(ruleName);
             timer.cancel();
             boolean removed = timers.remove(ruleName) != null;
-            LOGGER.debug("cancelTimer: " + timer.getLogName() + ", state: " + item.getState() + ", timers before: " + t + ", after: " + timers.size() + ", cancelled: " + cancelled + ", removed: " + removed);
+            LOGGER.debug("cancelTimer: (" + System.identityHashCode(timers) + ") " + timer.getLogName() + ", state: " + item.getState() + ", timers before: " + t + ", after: " + timers.size() + ", cancelled: " + cancelled + ", removed: " + removed);
         }
     }
 
