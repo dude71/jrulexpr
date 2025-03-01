@@ -23,7 +23,7 @@ public class JrxpItemExpression extends AbstractJrxItemExpression {
     @Override
     public Boolean evaluateToBoolean() {
         JrxItem item = getItem();
-        LOGGER.info("{}: | jrxp | {}, | jrx | {}", new Object[] { item.getName(), this.getXpr(), item.getJrx() });
+        LOGGER.info("{}: [jrxp] {}, [jrx] {}", new Object[] { item.getName(), this.getXpr(), item.getJrx() });
 
         Set<JrxItem> nullItems = item.getTriggeringItems().stream().filter(i -> i.getState() == null).collect(Collectors.toSet());
         nullItems.stream().forEach(i -> LOGGER.info(">> {} is NULL!", new Object[]{ i.getName() }));

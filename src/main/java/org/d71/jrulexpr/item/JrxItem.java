@@ -220,11 +220,10 @@ public class JrxItem {
     }
 
     public void send(JRuleValue value) {
-        LOGGER.info("{} -> item {} ({})", new Object[]{value, item.getName(), item.getType()});
-
         JRuleValue curr = getState();
 
         if (curr == null || !curr.equals(value) || forceCmd()) {
+            LOGGER.info("{} -> {} ({})", new Object[]{value, item.getName(), item.getType()});
             item.sendUncheckedCommand(value);
         } else {
             LOGGER.info("skip {} -> {} (curr={})", new Object[]{value, getName(), curr});
