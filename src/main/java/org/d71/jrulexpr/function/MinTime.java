@@ -27,6 +27,9 @@ public class MinTime extends AbstractFunction implements JrxFunction<Boolean> {
 
     private JrxItem item;
 
+    // keep ref to ClassLoader so that Class itself does not get unloaded!
+    private Object loader = MinTime.class.getClassLoader();
+
     @Override
     public String getToken() {
         return "MINTIME";
@@ -92,6 +95,14 @@ public class MinTime extends AbstractFunction implements JrxFunction<Boolean> {
                 : new Number[0];
 
         return EvaluationValue.booleanValue(getValue(param));
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        LOGGER.trace("Cleanup (" + System.identityHashCode(this) + "/" + System.identityHashCode(timers) + "), item: " + item.getName());
+        timers.values().forEach(this::cancelTimer);
+        timers.clear();
+        super.finalize();
     }
 
     private String timerName(JRuleTimer t) {
