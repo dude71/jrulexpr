@@ -1,6 +1,7 @@
 package org.d71.jrulexpr.function;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -22,7 +23,7 @@ import com.ezylang.evalex.parser.Token;
 @FunctionParameter(name = "duration")
 public class MinTime extends AbstractFunction implements JrxFunction<Boolean> {
     private static final Logger LOGGER = LoggerFactory.getLogger(MinTime.class);
-    private static final Map<String, JRuleTimer> timers = new HashMap<>();
+    private static final Map<String, JRuleTimer> timers = Collections.synchronizedMap(new HashMap<>());
 
     private JrxItem item;
 
@@ -48,29 +49,27 @@ public class MinTime extends AbstractFunction implements JrxFunction<Boolean> {
             JRuleTimer timer;
 
             Boolean jrxEval = item.evaluateJrx();
-            LOGGER.debug("MinTimeFunction.getValue: " + item.getName() + ", jrx: " + item.getJrx() + " -> " + jrxEval);
+            LOGGER.debug("MinTime.getValue: " + item.getName() + ", | jrx: " + item.getJrx() + " | -> " + jrxEval);
 
-            synchronized (timers) {
-                timer = timers.get(ruleName);
+            timer = timers.get(ruleName);
 
-                rv = timer == null;
+            rv = timer == null;
 
-                if (rv) {
-                    if (jrxEval) {
-                        timer = JRuleTimerHandler.get().createTimer(ruleName, duration, timerAction(ruleName, duration),
-                                null);
-                        timers.put(ruleName, timer);
-                        LOGGER.debug("created timer {}, #timers {}", new Object[]{timerName(timer), timers.size()});
-                    }
-                } else {
-                    LOGGER.debug("timer {}, done: {}, running: {}",
-                            new Object[] { timerName(timer), timer.isDone(), timer.isRunning() });
-                    if (jrxEval) {
-                        rescheduleTimer(ruleName, timer, duration);
-                    }
+            if (rv) {
+                if (jrxEval) {
+                    timer = JRuleTimerHandler.get().createTimer(ruleName, duration, timerAction(ruleName, duration),
+                            null);
+                    timers.put(ruleName, timer);
+                    LOGGER.debug("(" + System.identityHashCode(timers) + ") created timer {}, #timers {}", new Object[]{timerName(timer), timers.size()});
                 }
-
+            } else {
+                LOGGER.debug("timer {}, done: {}, running: {}",
+                        new Object[] { timerName(timer), timer.isDone(), timer.isRunning() });
+                if (jrxEval) {
+                    rescheduleTimer(ruleName, timer, duration);
+                }
             }
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -100,28 +99,24 @@ public class MinTime extends AbstractFunction implements JrxFunction<Boolean> {
     }
 
     private void rescheduleTimer(String ruleName, JRuleTimer timer, Duration duration) {
-        synchronized (timers) {
-            String timerName = timerName(timer);
-            JRuleTimer newTimer = timer.rescheduleTimer(duration);
-            LOGGER.trace("timer {}, oldTimer {}, newTimer {}", new Object[] {timer.hashCode(), timer.hashCode(), newTimer.hashCode()});
-            JRuleTimer oldTimer = timers.put(ruleName, newTimer);
-            LOGGER.debug("rescheduled timer {} (done={}) -> {} (was {}), #timers {}", new Object[] { timerName, timer.isDone(), newTimer.hashCode(), oldTimer == null ? 0 : oldTimer.hashCode(), timers.size() });
-            if (!timer.isDone()) {
-                LOGGER.warn("Killing rescheduled timer: " + timerName);
-                cancelTimer(timer);
-            }
+        String timerName = timerName(timer);
+        JRuleTimer newTimer = timer.rescheduleTimer(duration);
+        LOGGER.trace("timer {}, oldTimer {}, newTimer {}", new Object[] {timer.hashCode(), timer.hashCode(), newTimer.hashCode()});
+        JRuleTimer oldTimer = timers.put(ruleName, newTimer);
+        LOGGER.debug("(" + System.identityHashCode(timers) + ") rescheduled timer {} (done={}) -> {} (was {}), #timers {}", new Object[] { timerName, timer.isDone(), newTimer.hashCode(), oldTimer == null ? 0 : oldTimer.hashCode(), timers.size() });
+        if (!timer.isDone()) {
+            LOGGER.warn("Killing rescheduled timer: " + timerName);
+            cancelTimer(timer);
         }
     }
 
     private void cancelTimer(JRuleTimer timer) {
-        synchronized (timers) {
-            String ruleName = item.getRuleMethodName();
-            int t = timers.size();
-            boolean cancelled = JRuleTimerHandler.get().cancelTimer(ruleName);
-            timer.cancel();
-            boolean removed = timers.remove(ruleName) != null;
-            LOGGER.debug("cancelTimer: (" + System.identityHashCode(timers) + ") " + timer.getLogName() + ", state: " + item.getState() + ", timers before: " + t + ", after: " + timers.size() + ", cancelled: " + cancelled + ", removed: " + removed);
-        }
+        String ruleName = item.getRuleMethodName();
+        int t = timers.size();
+        boolean cancelled = JRuleTimerHandler.get().cancelTimer(ruleName);
+        timer.cancel();
+        boolean removed = timers.remove(ruleName) != null;
+        LOGGER.debug("cancelTimer: (" + System.identityHashCode(timers) + ") " + timer.getLogName() + ", state: " + item.getState() + ", timers before: " + t + ", after: " + timers.size() + ", cancelled: " + cancelled + ", removed: " + removed);
     }
 
     private Consumer<JRuleTimer> timerAction(String ruleName, Duration duration) {
@@ -131,24 +126,22 @@ public class MinTime extends AbstractFunction implements JrxFunction<Boolean> {
 
             boolean clear = false;
 
-            synchronized (timers) {
-                try {
-                    Boolean jrx = item.evaluateJrx();
-                    if (jrx) {
-                        // jrxp met and jrx action condition still applies
-                        LOGGER.debug("ta: rescheduling timer {}, state={}, done={}, running={} AFTER timeout", new Object[]{timerName(t), item.getState(), t.isDone(), t.isRunning()});
-                        rescheduleTimer(ruleName, t, duration);
-                    } else {
-                        clear = true;
-                        JRuleValue newState = item.evaluateJrxf();
-                        LOGGER.debug("ta: timer {} action oldState={} newState={} for {}",
-                                new Object[]{timerName(t), item.getState(), newState, item.getName()});
-                        item.send(newState);
-                    }
-                } finally {
-                    if (clear) {
-                        cancelTimer(t);
-                    }
+            try {
+                Boolean jrx = item.evaluateJrx();
+                if (jrx) {
+                    // jrxp met and jrx action condition still applies
+                    LOGGER.debug("ta: rescheduling timer {}, state={}, done={}, running={} AFTER timeout", new Object[]{timerName(t), item.getState(), t.isDone(), t.isRunning()});
+                    rescheduleTimer(ruleName, t, duration);
+                } else {
+                    clear = true;
+                    JRuleValue newState = item.evaluateJrxf();
+                    LOGGER.debug("ta: timer {} action oldState={} newState={} for {}",
+                            new Object[]{timerName(t), item.getState(), newState, item.getName()});
+                    item.send(newState);
+                }
+            } finally {
+                if (clear) {
+                    cancelTimer(t);
                 }
             }
         };
