@@ -1,5 +1,6 @@
 package org.d71.jrulexpr.item;
 
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -11,15 +12,20 @@ import org.d71.jrulexpr.expression.JrxfItemExpression;
 import org.d71.jrulexpr.expression.JrxpItemExpression;
 import org.d71.jrulexpr.expression.JrxtItemExpression;
 import org.d71.jrulexpr.function.JrxFunction;
+import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
 import org.openhab.automation.jrule.items.JRuleItem;
 import org.openhab.automation.jrule.items.metadata.JRuleItemMetadata;
+import org.openhab.automation.jrule.rules.JRule;
 import org.openhab.automation.jrule.rules.event.JRuleEvent;
 import org.openhab.automation.jrule.rules.value.JRuleValue;
+import org.openhab.core.types.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class JrxItem {
     private static final Logger LOGGER = LoggerFactory.getLogger(JrxItem.class);
+
+    private static final String DEFAULT_PERSISTENCE = "inmemory";
 
     private final JRuleItem item;
 
@@ -72,6 +78,7 @@ public class JrxItem {
         return item.getType();
     }
 
+    // tags not backed by OH tags!
     public List<String> getTags() {
         return item.getTags();
     }
@@ -116,6 +123,24 @@ public class JrxItem {
 
     public Optional<Object> getMetadataConfigValue(String meta, String key) {
         return Optional.ofNullable(getMetadataConfig(meta).get(key));
+    }
+
+    public JRuleValue getPreviousState() {
+        return getPreviousState(DEFAULT_PERSISTENCE);
+    }
+
+    public JRuleValue getPreviousState(String persistence) {
+        Optional<State> prevState = item.getPreviousState(true, persistence);
+        return prevState.map(state -> JRuleEventHandler.get().toValue(state)).orElse(null);
+    }
+
+    public Long getLastUpdated() {
+        return getLastUpdated(DEFAULT_PERSISTENCE);
+    }
+
+    public Long getLastUpdated(String persistence) {
+        Optional<ZonedDateTime> lastUpd = item.lastUpdated(persistence);
+        return lastUpd.isEmpty() ? null : lastUpd.get().toInstant().toEpochMilli();
     }
 
     public void setLastTriggeredBy(JRuleEvent event) {
