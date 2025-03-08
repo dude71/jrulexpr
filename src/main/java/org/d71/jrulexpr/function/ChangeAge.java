@@ -12,16 +12,15 @@ import org.slf4j.LoggerFactory;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.Set;
 
 @FunctionParameter(name = "item", isVarArg = true)
-public class LastChange extends AbstractItemChangeFunction<Long> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LastChange.class);
+public class ChangeAge extends AbstractItemChangeFunction<Long> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChangeAge.class);
 
     @Override
     public String getToken() {
-        return "LASTCH";
+        return "CHAGE";
     }
 
     @Override
@@ -34,8 +33,9 @@ public class LastChange extends AbstractItemChangeFunction<Long> {
         String itemName = (String) parameters[0];
         JrxItem item = itemName.equals(this.item.getName()) ? this.item : itemRegistry.getItem(itemName);
         Long lastCh = item.getLastUpdated();
-        LOGGER.debug("item: " + item.getName() + " lastCh: " + lastCh);
-        return lastCh;
+        Long chAge = lastCh == null ? null : (ZonedDateTime.now().toInstant().toEpochMilli() - lastCh) / 1000;
+        LOGGER.debug("item: {}, lastCh: {}, chAge: {}", item.getName(), lastCh, chAge);
+        return chAge;
     }
 
     @Override

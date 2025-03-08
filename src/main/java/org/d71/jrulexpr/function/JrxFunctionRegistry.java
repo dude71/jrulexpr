@@ -11,6 +11,7 @@ public class JrxFunctionRegistry {
     public static synchronized JrxFunctionRegistry getInstance() {
         if (registry == null) {
             registry = new JrxFunctionRegistry();
+            registry.register(ChangeAge.class);
             registry.register(Channel.class);
             registry.register(Enabled.class);
             registry.register(Exec.class);
