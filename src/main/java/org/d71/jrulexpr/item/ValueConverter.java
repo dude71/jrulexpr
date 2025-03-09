@@ -37,8 +37,10 @@ public class ValueConverter {
             rv = new JRuleStringValue((String) object);
         } else if (CoreItemFactory.COLOR.equals(itemType)) {
             rv = new JRuleHsbValue((String) object);
+        } else if (CoreItemFactory.ROLLERSHUTTER.equals(itemType)) {
+            rv = new JRulePercentValue(((BigDecimal)object).intValue());
         } else {
-            LOGGER.warn("Cannot convert object {} to value!", new Object[] { object });
+            LOGGER.warn("Cannot convert object type={}, value={} to value!", new Object[] { object, itemType });
         }
         return rv;
     }
