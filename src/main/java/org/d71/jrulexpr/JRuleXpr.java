@@ -14,8 +14,8 @@ public class JRuleXpr {
         return instance == null ? (instance = new JRuleXpr()) : instance;
     }
 
-    private JrxItemRegistry itemRegistry = JrxItemRegistry.getInstance();
-    private ItemRuleGenerator itemRuleGenerator = new ItemRuleGenerator();
+    private final JrxItemRegistry itemRegistry = JrxItemRegistry.getInstance();
+    private final ItemRuleGenerator itemRuleGenerator = new ItemRuleGenerator();
 
     public void unload() {
         LOGGER.info("## Unloading JRuleXpr..");

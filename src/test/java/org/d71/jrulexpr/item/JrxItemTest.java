@@ -95,6 +95,13 @@ public class JrxItemTest extends AbstractJrxExpressionTest {
     }
 
     @Test
+    public void getSkipJrxf() {
+        JrxItem itmX = createMockedItem("X", CoreItemFactory.NUMBER, "1");
+        itmX.getMetadata().put("jrxc", new JRuleItemMetadata("noTrigger='X,Y, Z,A', skipJrxf, bla=Bla"));
+        assertTrue(itmX.skipJrxf());
+    }
+
+    @Test
     public void getTriggeringItems() {
         JrxItem itmX = createMockedItem("X", CoreItemFactory.NUMBER, "1");
         JrxItem itmY = createMockedItem("Y", CoreItemFactory.NUMBER, "1");

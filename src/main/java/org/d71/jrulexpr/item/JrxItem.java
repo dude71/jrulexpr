@@ -232,7 +232,7 @@ public class JrxItem {
         String methodName = getRuleMethodName();
 
         if (evaluateJrxp()) {
-            value = Optional.of(getJrx() == null || evaluateJrx() ? evaluateJrxt() : evaluateJrxf());
+            value = Optional.ofNullable(getJrx() == null || evaluateJrx() ? evaluateJrxt() : (skipJrxf() ? null : evaluateJrxf()));
         } else {
             value = Optional.empty();
             LOGGER.debug("-- pre condition {} NOT met for {}", new Object[]{getJrxp(), methodName});
@@ -298,6 +298,10 @@ public class JrxItem {
         String noTrig = getJrxcValue("noTrigger");
         noTrig = noTrig == null ? null : noTrig.replaceFirst("^\'", "").replaceFirst("\'$", "");
         return noTrig == null ? Collections.emptySet() : Set.of(noTrig.split(",\\W*"));
+    }
+
+    public boolean skipJrxf() {
+        return getJrxcConfigs().stream().anyMatch(c -> c.contains("skipJrxf"));
     }
 
     protected boolean forceCmd() {
