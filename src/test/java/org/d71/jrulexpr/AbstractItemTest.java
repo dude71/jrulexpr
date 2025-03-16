@@ -69,13 +69,13 @@ public abstract class AbstractItemTest {
                 Mockito.lenient().when(jrItm.getState()).thenReturn(value == null ? null : new JRuleDecimalValue(value));    
             }
             else if (CoreItemFactory.DIMMER.equals(type)) {
-                Mockito.lenient().when(jrItm.getState()).thenReturn(new JRulePercentValue(value));
+                Mockito.lenient().when(jrItm.getState()).thenReturn(value == null ? null : new JRulePercentValue(value));
             }
             else if (CoreItemFactory.SWITCH.equals(type)) {
-                Mockito.lenient().when(jrItm.getState()).thenReturn(JRuleOnOffValue.getValueFromString(value));
+                Mockito.lenient().when(jrItm.getState()).thenReturn(value == null ? null : JRuleOnOffValue.getValueFromString(value));
             }
             else if (CoreItemFactory.DATETIME.equals(type)) {
-                Mockito.lenient().when(jrItm.getState()).thenReturn(new JRuleDateTimeValue(value));
+                Mockito.lenient().when(jrItm.getState()).thenReturn(value == null ? null : new JRuleDateTimeValue(value));
             }
 
             Mockito.lenient().when(jrItm.getTags()).thenReturn(Arrays.asList(tags));
