@@ -16,17 +16,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-@FunctionParameter(name = "itemName")
-@FunctionParameter(name = "itemName2")
-@FunctionParameter(name = "itemName3", isVarArg = true)
+@FunctionParameter(name = "item1")
+@FunctionParameter(name = "item2")
+@FunctionParameter(name = "item3", isVarArg = true)
 public class NotNull extends AbstractFunction implements JrxFunction<Boolean> {
     private static final Logger LOGGER = LoggerFactory.getLogger(NotNull.class);
-    private JrxItemRegistry itemRegistry;
-
-    @Override
-    public void setItemRegistry(JrxItemRegistry registry) {
-        this.itemRegistry = registry;
-    }
 
     @Override
     public String getToken() {
@@ -34,14 +28,11 @@ public class NotNull extends AbstractFunction implements JrxFunction<Boolean> {
     }
 
     @Override
-    public Boolean getValue(Object... parameters) {
+    public Boolean getValue(Object... values) {
         boolean rv = false;
-        for (Object p : parameters) {
-            Optional<JrxItem> jrxItem = itemRegistry.get((String) p);
-            if (jrxItem.isEmpty()) throw new RuntimeException("Cannot find item " + (String)p + " !");
-            rv = jrxItem.get().getState() == null;
+        for (Object value : values) {
+            rv = value != null;
             if (!rv) {
-                LOGGER.debug("item " + jrxItem.get().getName() + " is null");
                 break;
             }
         }
@@ -50,8 +41,8 @@ public class NotNull extends AbstractFunction implements JrxFunction<Boolean> {
 
     @Override
     public EvaluationValue evaluate(Expression expression, Token token, EvaluationValue... parameters) throws EvaluationException {
-        Object[] itemNames = Arrays.stream(parameters).map(EvaluationValue::getStringValue).toList().toArray(Object[]::new);
-        return EvaluationValue.booleanValue(getValue(itemNames));
+        Object[] itemValues = Arrays.stream(parameters).map(EvaluationValue::getValue).toList().toArray(Object[]::new);
+        return EvaluationValue.booleanValue(getValue(itemValues));
     }
 
 }

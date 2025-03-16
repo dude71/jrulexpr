@@ -14,17 +14,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class NotNullTest extends AbstractItemTest {
     @Test
+    public void testTwoItemsNotNull() {
+        NotNull func = new NotNull();
+        JrxItemRegistry itemReg = Mockito.mock(JrxItemRegistry.class);
+        func.setItemRegistry(itemReg);
+
+        JrxItem itm = createMockedItem("sw", CoreItemFactory.SWITCH, "ON");
+        JrxItem itm2 = createMockedItem("nr", CoreItemFactory.NUMBER, "2");
+
+        assertTrue(func.getValue(new Object[] { itm.getState(), itm2.getState() }));
+    }
+
+    @Test
     public void testTwoItemsNull() {
         NotNull func = new NotNull();
         JrxItemRegistry itemReg = Mockito.mock(JrxItemRegistry.class);
         func.setItemRegistry(itemReg);
 
         JrxItem itm = createMockedItem("sw", CoreItemFactory.SWITCH, null);
-        Mockito.when(itemReg.get(itm.getName())).thenReturn(Optional.of(itm));
         JrxItem itm2 = createMockedItem("nr", CoreItemFactory.NUMBER, null);
-        Mockito.when(itemReg.get(itm2.getName())).thenReturn(Optional.of(itm2));
 
-        assertTrue(func.getValue(new Object[] { itm.getName(), itm2.getName() }));
+        assertFalse(func.getValue(new Object[] { itm.getState(), itm2.getState() }));
     }
 
     @Test
@@ -34,13 +44,10 @@ public class NotNullTest extends AbstractItemTest {
         func.setItemRegistry(itemReg);
 
         JrxItem itm = createMockedItem("sw", CoreItemFactory.SWITCH, null);
-        Mockito.when(itemReg.get(itm.getName())).thenReturn(Optional.of(itm));
         JrxItem itm2 = createMockedItem("nr", CoreItemFactory.NUMBER, null);
-        Mockito.when(itemReg.get(itm2.getName())).thenReturn(Optional.of(itm2));
         JrxItem itm3 = createMockedItem("dm", CoreItemFactory.DIMMER, null);
-        Mockito.when(itemReg.get(itm3.getName())).thenReturn(Optional.of(itm3));
 
-        assertTrue(func.getValue(new Object[] { itm.getName(), itm2.getName(), itm3.getName() }));
+        assertFalse(func.getValue(new Object[] { itm.getState(), itm2.getState(), itm3.getState() }));
     }
 
     @Test
@@ -50,13 +57,10 @@ public class NotNullTest extends AbstractItemTest {
         func.setItemRegistry(itemReg);
 
         JrxItem itm = createMockedItem("sw", CoreItemFactory.SWITCH, null);
-        Mockito.when(itemReg.get(itm.getName())).thenReturn(Optional.of(itm));
         JrxItem itm2 = createMockedItem("nr", CoreItemFactory.NUMBER, "1");
-        Mockito.when(itemReg.get(itm2.getName())).thenReturn(Optional.of(itm2));
         JrxItem itm3 = createMockedItem("dm", CoreItemFactory.DIMMER, null);
-        Mockito.lenient().when(itemReg.get(itm3.getName())).thenReturn(Optional.of(itm3));
 
-        assertFalse(func.getValue(new Object[] { itm.getName(), itm2.getName(), itm3.getName() }));
+        assertFalse(func.getValue(new Object[] { itm.getState(), itm2.getState(), itm3.getState() }));
     }
 
 }
