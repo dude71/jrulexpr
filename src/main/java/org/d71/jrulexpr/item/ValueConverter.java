@@ -20,27 +20,29 @@ public class ValueConverter {
         } else if (CoreItemFactory.SWITCH.equals(itemType)) {
             object = JRuleOnOffValue.valueOf(value);
         } // TODO rest
-        return object == null ? null : convertToValue(object, itemType);
+        return convertToValue(object, itemType);
     }
 
     public static JRuleValue convertToValue(Object object, String itemType) {
         JRuleValue rv = null;
-        if (CoreItemFactory.DIMMER.equals(itemType)) {
-            rv = new JRulePercentValue(((BigDecimal) object).intValue());
-        } else if (CoreItemFactory.NUMBER.equals(itemType)) {
-            rv = new JRuleDecimalValue((BigDecimal) object);
-        } else if (CoreItemFactory.SWITCH.equals(itemType)) {
-            rv = String.valueOf(object).equals("ON") ? JRuleOnOffValue.ON : JRuleOnOffValue.OFF;
-        } else if (CoreItemFactory.DATETIME.equals(itemType)) {
-            rv = new JRuleDateTimeValue(new Date(((BigDecimal) object).longValue()));
-        } else if (CoreItemFactory.STRING.equals(itemType)) {
-            rv = new JRuleStringValue((String) object);
-        } else if (CoreItemFactory.COLOR.equals(itemType)) {
-            rv = new JRuleHsbValue((String) object);
-        } else if (CoreItemFactory.ROLLERSHUTTER.equals(itemType)) {
-            rv = new JRulePercentValue(((BigDecimal)object).intValue());
-        } else {
-            LOGGER.warn("Cannot convert object type={}, value={} to value!", new Object[] { object, itemType });
+        if (object != null) {
+            if (CoreItemFactory.DIMMER.equals(itemType)) {
+                rv = new JRulePercentValue(((BigDecimal) object).intValue());
+            } else if (CoreItemFactory.NUMBER.equals(itemType)) {
+                rv = new JRuleDecimalValue((BigDecimal) object);
+            } else if (CoreItemFactory.SWITCH.equals(itemType)) {
+                rv = String.valueOf(object).equals("ON") ? JRuleOnOffValue.ON : JRuleOnOffValue.OFF;
+            } else if (CoreItemFactory.DATETIME.equals(itemType)) {
+                rv = new JRuleDateTimeValue(new Date(((BigDecimal) object).longValue()));
+            } else if (CoreItemFactory.STRING.equals(itemType)) {
+                rv = new JRuleStringValue((String) object);
+            } else if (CoreItemFactory.COLOR.equals(itemType)) {
+                rv = new JRuleHsbValue((String) object);
+            } else if (CoreItemFactory.ROLLERSHUTTER.equals(itemType)) {
+                rv = new JRulePercentValue(((BigDecimal) object).intValue());
+            } else {
+                LOGGER.warn("Cannot convert object type={}, value={} to value!", new Object[]{object, itemType});
+            }
         }
         return rv;
     }
@@ -58,7 +60,7 @@ public class ValueConverter {
         else if (value instanceof JRuleStringValue)
             obj = value.stringValue();
         else
-            LOGGER.warn("Cannot convert value {} to object!", new Object[] { value });
+            LOGGER.warn("Cannot convert value {} to object!", new Object[]{value});
         return obj;
     }
 }
