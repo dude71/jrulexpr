@@ -14,7 +14,7 @@ import com.ezylang.evalex.functions.AbstractFunction;
 import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 
-@FunctionParameter(name = "duration")
+@FunctionParameter(name = "duration", isVarArg = true)
 public class Lock extends AbstractFunction implements JrxFunction<Boolean> {
     private static final Logger LOGGER = LoggerFactory.getLogger(Lock.class);
 
