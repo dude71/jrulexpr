@@ -15,14 +15,14 @@ import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 
 @FunctionParameter(name = "duration", isVarArg = true)
-public class Lock extends AbstractFunction implements JrxFunction<Boolean> {
+public class ReLock extends AbstractFunction implements JrxFunction<Boolean> {
     private static final Logger LOGGER = LoggerFactory.getLogger(Lock.class);
 
     private String ruleName;
 
     @Override
     public final String getToken() {
-        return "LOCK";
+        return "RELOCK";
     }
 
     @Override
@@ -33,12 +33,21 @@ public class Lock extends AbstractFunction implements JrxFunction<Boolean> {
     @Override
     public Boolean getValue(Object... parameters) {
         boolean rv = false;
-        Duration duration = Duration.ofSeconds((int)parameters[0]);
+        Duration duration = Duration.ofSeconds((int) parameters[0]);
         JRuleTimerHandler timerHandler = JRuleTimerHandler.get();
         LOGGER.debug("timerHandler " + timerHandler.hashCode());
-        synchronized(timerHandler) {
-            rv = timerHandler.getTimeLock(ruleName, duration);
+
+        synchronized (timerHandler) {
+            if (timerHandler.isTimeLocked(ruleName)) {
+                LOGGER.debug("timeLocked");
+                timerHandler.cancelTimer(JRuleTimerHandler.LOCK_PREFIX + ruleName);
+                timerHandler.getTimeLock(ruleName, duration);
+                rv = true;
+            } else {
+                LOGGER.debug("NOT timelocked");
+            }
         }
+
         return rv;
     }
 
@@ -46,12 +55,11 @@ public class Lock extends AbstractFunction implements JrxFunction<Boolean> {
     public EvaluationValue evaluate(Expression expression, Token functionToken, EvaluationValue... parameterValues)
             throws EvaluationException {
 
-        boolean gotLock = getValue(parameterValues.length == 1 ? parameterValues[0].getNumberValue().intValue() : 1);
+        boolean relocked = getValue(parameterValues.length == 1 ? parameterValues[0].getNumberValue().intValue() : 1);
 
-        LOGGER.debug(ruleName + ": got lock=" + gotLock);
+        LOGGER.debug(ruleName + ": relocked=" + relocked);
 
-        return EvaluationValue.booleanValue(gotLock);
+        return EvaluationValue.booleanValue(relocked);
     }
 
-    
 }

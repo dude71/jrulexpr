@@ -27,6 +27,7 @@ public class JrxFunctionRegistry {
             registry.register(NotNull.class);
             registry.register(Now.class);
             registry.register(PreviousValue.class);
+            registry.register(ReLock.class);
             registry.register(SelfTriggered.class);
             registry.register(Sleep.class);
             registry.register(SubStr.class);
