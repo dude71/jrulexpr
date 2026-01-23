@@ -91,6 +91,7 @@ public class JrxItem {
     }
 
     public void setTagValue(String tagName, String value) {
+        removeTag(tagName);
         getTags().add(tagName + "=" + value);
     }
 

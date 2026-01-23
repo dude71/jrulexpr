@@ -13,6 +13,7 @@ public class JrxFunctionRegistry {
             registry = new JrxFunctionRegistry();
             registry.register(ChangeAge.class);
             registry.register(Channel.class);
+            registry.register(ExtendLock.class);
             registry.register(Enabled.class);
             registry.register(Exec.class);
             registry.register(Group.class);

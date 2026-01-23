@@ -16,7 +16,7 @@ import com.ezylang.evalex.parser.Token;
 
 @FunctionParameter(name = "duration", isVarArg = true)
 public class ReLock extends AbstractFunction implements JrxFunction<Boolean> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Lock.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReLock.class);
 
     private String ruleName;
 

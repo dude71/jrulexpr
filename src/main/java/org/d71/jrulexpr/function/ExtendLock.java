@@ -5,14 +5,14 @@ import java.time.Duration;
 import com.ezylang.evalex.functions.FunctionParameter;
 
 @FunctionParameter(name = "duration", isVarArg = true)
-public class Lock extends AbstractItemLockFunction {
+public class ExtendLock extends AbstractItemLockFunction {
     @Override
     public final String getToken() {
-        return "LOCK";
+        return "ELOCK";
     }
 
     @Override
     public Boolean getValue(Object... parameters) {
-        return lock(Duration.ofSeconds((int)parameters[0]));
+        return extendLock(Duration.ofSeconds((int)parameters[0]));
     }
 }
