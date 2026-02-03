@@ -1,5 +1,8 @@
 package org.d71.jrulexpr;
 
+import org.d71.jrulexpr.item.JrxItem;
+import org.d71.jrulexpr.item.JrxItemRegistry;
+import org.d71.jrulexpr.rule.ItemRuleGenerator;
 import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
 import org.openhab.automation.jrule.internal.handler.JRuleItemHandler;
 import org.openhab.automation.jrule.rules.JRule;
@@ -10,18 +13,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicInteger;
 
-public class JRuleXprLoader extends JRule {
-    private static boolean loaded = false;
+public class JRuleXprLoader extends JRule implements Runnable {
+    static {
+        // load in separate thread not block JRule startup (can pickup generated Java
+        // files)
+        Thread loaderThread = new Thread(new JRuleXprLoader());
+        loaderThread.start();
+    }
+
     private static final String NR_JRX_LOADED = "NR_JRX_LOADED";
 
-    protected static final Logger LOGGER = LoggerFactory.getLogger(JRuleXprLoader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JRuleXprLoader.class);
+
+    private static boolean loaded = false;
 
     private static boolean startupWait(int startupWaitMs) {
         try {
+            // wait for Openhab to load all items before generating rules
             LOGGER.info("JRuleXpr.startupWait " + startupWaitMs + " ms..");
             if (startupWaitMs > 0) {
                 Thread.sleep(startupWaitMs);
@@ -32,9 +44,9 @@ public class JRuleXprLoader extends JRule {
         return true;
     }
 
-    protected synchronized static void load(int startupWaitMs) {
+    protected synchronized static void load(int startupWaitMs, int waitPerRuleMs) {
         LOGGER.info("JRuleXpr.load loaded=" + loaded);
-        if (!loaded && (!rulesExist() && startupWait(startupWaitMs) || forceRulesReload())) {
+        if (!loaded && !rulesExist() && startupWait(startupWaitMs)) {
             storeJrxLoaded(0);
             JRuleXpr.getInstance().generateItemRules();
             loaded = true;
@@ -46,32 +58,28 @@ public class JRuleXprLoader extends JRule {
                 }
             };
             Timer timer = new Timer("jrxStateTimer");
-            timer.schedule(task, 12000); // TODO make dependent on # of rules generated
+            int nrOfRules = JrxItemRegistry.getInstance().getItems().size();
+            int wait = nrOfRules * waitPerRuleMs + 1000;
+            LOGGER.info("JRuleXprLoader scheduling JRX_LOADED update in " + wait + " ms for " + nrOfRules + " rules.");
+            timer.schedule(task, wait);
         }
     }
 
     private static boolean rulesExist() {
         boolean rv = false;
         try {
-            // TODO read generated classes from items
-            Class.forName("org.openhab.automation.jrule.rules.user.generated.NetRules", false, JRuleXprLoader.class.getClassLoader());
-            rv = true;
+            Optional<String> ruleClass = JrxItemRegistry.getInstance().getItems().stream().findFirst()
+                    .map(JrxItem::getRuleClassName);
+            if (!ruleClass.isEmpty()) {
+                LOGGER.info("JRuleXprLoader checking for existing class " + ruleClass.get());
+                Class.forName(ItemRuleGenerator.RULE_PKG + "." + ruleClass.get(), false,
+                        JRuleXprLoader.class.getClassLoader());
+                rv = true;
+            }
         } catch (Exception e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e.getClass().getCanonicalName() + " " + e.getMessage());
         }
-        LOGGER.info("JRuleXpr.rulesCreated=" + rv);
-        return rv;
-    }
-
-    private static boolean forceRulesReload() {
-        boolean rv = false;
-        try {
-            Class<?> loaderClazz = Class.forName("org.openhab.automation.jrule.rules.user.generated.JRuleXprLoader", false, JRuleXprLoader.class.getClassLoader());
-            rv = loaderClazz.getResource("jrulexpr-reload") != null || loaderClazz.getResource("generated/jrulexpr-reload") != null;
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage());
-        }
-        LOGGER.info("JRuleXpr.forceRulesReload=" + rv);
+        LOGGER.info("JRuleXpr.rulesExist=" + rv);
         return rv;
     }
 
@@ -98,5 +106,11 @@ public class JRuleXprLoader extends JRule {
             itm = null;
         }
         return itm;
+    }
+
+    @Override
+    public void run() {
+        load(Integer.parseInt(Optional.ofNullable(System.getenv("JRULEXPR_STARTUP_WAIT")).orElse("5000")),
+                Integer.parseInt(Optional.ofNullable(System.getProperty("JRULEXPR_RULE_WAIT")).orElse("50")));
     }
 }

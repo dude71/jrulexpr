@@ -7,7 +7,7 @@
 
   <groupId>org.d71</groupId>
   <artifactId>jrulexpr</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.1-SNAPSHOT</version>
 
   <name>jrulexpr</name>
 
@@ -80,7 +80,7 @@
       <groupId>org.openhab.core.bundles</groupId>
       <artifactId>org.openhab.core</artifactId>
       <version>4.1.3</version>
-      <scope>provided</scope>
+      <!-- <scope>provided</scope> -->
     </dependency>
 
     <dependency>
@@ -99,7 +99,7 @@
     <dependency>
       <groupId>com.ezylang</groupId>
       <artifactId>EvalEx</artifactId>
-      <version>3.3.0</version>
+      <version>3.6.0</version>
     </dependency>
 
     <!--

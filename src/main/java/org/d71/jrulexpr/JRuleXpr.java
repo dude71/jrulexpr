@@ -8,10 +8,13 @@ import org.slf4j.LoggerFactory;
 public class JRuleXpr {
     private static final Logger LOGGER = LoggerFactory.getLogger(JRuleXpr.class);
 
-    private static JRuleXpr instance = null;
+    private static JRuleXpr instance;
 
-    public static JRuleXpr getInstance() {
-        return instance == null ? (instance = new JRuleXpr()) : instance;
+    public static synchronized JRuleXpr getInstance() {
+        LOGGER.info("getting instance..");
+        if (instance == null) instance = new JRuleXpr();
+        LOGGER.info("instance=" + instance);
+        return instance;
     }
 
     private final JrxItemRegistry itemRegistry = JrxItemRegistry.getInstance();
