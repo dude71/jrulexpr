@@ -19,10 +19,14 @@ import java.util.TimerTask;
 
 public class JRuleXprLoader extends JRule implements Runnable {
     static {
-        // load in separate thread not block JRule startup (can pickup generated Java
-        // files)
-        Thread loaderThread = new Thread(new JRuleXprLoader());
-        loaderThread.start();
+        try {
+            // load in separate thread not block JRule startup (JRule can pickup generated Java
+            // files)
+            Thread loaderThread = new Thread(new JRuleXprLoader());
+            loaderThread.start();
+        } catch (Throwable t) {
+            LoggerFactory.getLogger(JRuleXprLoader.class).error("Failed to start JRuleXprLoader thread", t);
+        }
     }
 
     private static final String NR_JRX_LOADED = "NR_JRX_LOADED";
@@ -44,7 +48,7 @@ public class JRuleXprLoader extends JRule implements Runnable {
         return true;
     }
 
-    protected synchronized static void load(int startupWaitMs, int waitPerRuleMs) {
+    private synchronized static void load(int startupWaitMs, int waitPerRuleMs) {
         LOGGER.info("JRuleXpr.load loaded=" + loaded);
         if (!loaded && !rulesExist() && startupWait(startupWaitMs)) {
             storeJrxLoaded(0);
@@ -58,7 +62,7 @@ public class JRuleXprLoader extends JRule implements Runnable {
                 }
             };
             Timer timer = new Timer("jrxStateTimer");
-            int nrOfRules = JrxItemRegistry.getInstance().getItems().size();
+            int nrOfRules = JrxItemRegistry.getInstance().getRuleItems().size();
             int wait = nrOfRules * waitPerRuleMs + 1000;
             LOGGER.info("JRuleXprLoader scheduling JRX_LOADED update in " + wait + " ms for " + nrOfRules + " rules.");
             timer.schedule(task, wait);
@@ -68,7 +72,7 @@ public class JRuleXprLoader extends JRule implements Runnable {
     private static boolean rulesExist() {
         boolean rv = false;
         try {
-            Optional<String> ruleClass = JrxItemRegistry.getInstance().getItems().stream().findFirst()
+            Optional<String> ruleClass = JrxItemRegistry.getInstance().getRuleItems().stream().findFirst()
                     .map(JrxItem::getRuleClassName);
             if (!ruleClass.isEmpty()) {
                 LOGGER.info("JRuleXprLoader checking for existing class " + ruleClass.get());
@@ -111,6 +115,6 @@ public class JRuleXprLoader extends JRule implements Runnable {
     @Override
     public void run() {
         load(Integer.parseInt(Optional.ofNullable(System.getenv("JRULEXPR_STARTUP_WAIT")).orElse("5000")),
-                Integer.parseInt(Optional.ofNullable(System.getProperty("JRULEXPR_RULE_WAIT")).orElse("50")));
+                Integer.parseInt(Optional.ofNullable(System.getenv("JRULEXPR_RULE_WAIT")).orElse("50")));
     }
 }

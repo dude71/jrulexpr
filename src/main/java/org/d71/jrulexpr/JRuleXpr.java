@@ -11,9 +11,9 @@ public class JRuleXpr {
     private static JRuleXpr instance;
 
     public static synchronized JRuleXpr getInstance() {
-        LOGGER.info("getting instance..");
-        if (instance == null) instance = new JRuleXpr();
-        LOGGER.info("instance=" + instance);
+        if (instance == null) {
+            instance = new JRuleXpr();
+        }
         return instance;
     }
 
@@ -28,7 +28,8 @@ public class JRuleXpr {
     public void generateItemRules() {
         LOGGER.info("## Starting JRuleXpr..");
         try {
-            itemRegistry.getItems().forEach(itemRuleGenerator::generate);
+            itemRegistry.getRuleItems().forEach(i -> LOGGER.info("item: " + i + " name=" + i.getName()));
+            itemRegistry.getRuleItems().forEach(itemRuleGenerator::generate);
             itemRuleGenerator.makeAll();
         } catch (Exception e) {
             LOGGER.error(e.getLocalizedMessage());
