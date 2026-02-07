@@ -17,55 +17,76 @@ import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class JRuleXprLoader extends JRule implements Runnable {
-    static {
-        try {
-            // load in separate thread not block JRule startup (JRule can pickup generated Java
-            // files)
-            Thread loaderThread = new Thread(new JRuleXprLoader());
-            loaderThread.start();
-        } catch (Throwable t) {
-            LoggerFactory.getLogger(JRuleXprLoader.class).error("Failed to start JRuleXprLoader thread", t);
-        }
-    }
+public class JRuleXprLoader extends JRule {
 
     private static final String NR_JRX_LOADED = "NR_JRX_LOADED";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JRuleXprLoader.class);
 
-    private static boolean loaded = false;
+    private static Boolean locked = false;
 
-    private static boolean startupWait(int startupWaitMs) {
-        try {
-            // wait for Openhab to load all items before generating rules
-            LOGGER.info("JRuleXpr.startupWait " + startupWaitMs + " ms..");
-            if (startupWaitMs > 0) {
-                Thread.sleep(startupWaitMs);
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+    static {
+        if (System.getProperty("jrx-loader-lock") == null) {
+            System.setProperty("jrx-loader-lock", "true");
+            load(Integer.parseInt(Optional.ofNullable(System.getenv("JRULEXPR_STARTUP_WAIT")).orElse("5000")),
+                    Integer.parseInt(Optional.ofNullable(System.getenv("JRULEXPR_RULE_WAIT")).orElse("50")));
+        } else {
+            LOGGER.info("JRuleXprLoader static initializer: jrx-loader-lock is already set, skipping load.");
         }
-        return true;
+    }
+
+    private static Timer doWaitForRulesTimer(int waitPerRuleMs) {
+        LOGGER.info("JRuleXprLoader scheduling wait for rules timer with wait per rule " + waitPerRuleMs + " ms.");
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                storeJrxLoaded(1);
+            }
+        };
+        Timer timer = new Timer("jrxStateTimer");
+        int nrOfRules = JrxItemRegistry.getInstance().getRuleItems().size();
+        int wait = nrOfRules * waitPerRuleMs + 1000;
+        LOGGER.info("JRuleXprLoader scheduling JRX_LOADED update in " + wait + " ms for " + nrOfRules + " rules.");
+        timer.schedule(task, wait);
+        return timer;
+    }
+
+    private static Timer doGenerateTimer(int waitPerRuleMs) {
+        LOGGER.info("JRuleXprLoader scheduling rules generation timer with wait per rule " + waitPerRuleMs + " ms.");
+        TimerTask generatorTask = new TimerTask() {
+            @Override
+            public void run() {
+                JRuleXprRulesGenerator.getInstance().generateItemRules();
+                doWaitForRulesTimer(waitPerRuleMs);
+            }
+        };
+        Timer timer = new Timer("jrxRulesGeneratorTimer");
+        timer.schedule(generatorTask, 2000);
+        return timer;
+    }
+
+    private static Timer doStartupWaitTimer(int startupWaitMs, int waitPerRuleMs) {
+        LOGGER.info("JRuleXprLoader scheduling startup wait timer for " + startupWaitMs + " ms.");
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                doGenerateTimer(waitPerRuleMs);
+            }
+        };
+        Timer timer = new Timer("jrxStartupWaitTimer");
+        timer.schedule(task, startupWaitMs);
+        return timer;
     }
 
     private synchronized static void load(int startupWaitMs, int waitPerRuleMs) {
-        LOGGER.info("JRuleXpr.load loaded=" + loaded);
-        if (!loaded && !rulesExist() && startupWait(startupWaitMs)) {
+        LOGGER.info("JRuleXpr.load locked=" + locked);
+        if (!locked && (locked = true) && !rulesExist()) {
             storeJrxLoaded(0);
-            JRuleXpr.getInstance().generateItemRules();
-            loaded = true;
-            JRuleXpr.getInstance().unload();
-            TimerTask task = new TimerTask() {
-                @Override
-                public void run() {
-                    storeJrxLoaded(1);
-                }
-            };
-            Timer timer = new Timer("jrxStateTimer");
-            int nrOfRules = JrxItemRegistry.getInstance().getRuleItems().size();
-            int wait = nrOfRules * waitPerRuleMs + 1000;
-            LOGGER.info("JRuleXprLoader scheduling JRX_LOADED update in " + wait + " ms for " + nrOfRules + " rules.");
-            timer.schedule(task, wait);
+            if (startupWaitMs > 0) {
+                doStartupWaitTimer(startupWaitMs, waitPerRuleMs);
+            } else {
+                doGenerateTimer(waitPerRuleMs);
+            }
         }
     }
 
@@ -110,11 +131,5 @@ public class JRuleXprLoader extends JRule implements Runnable {
             itm = null;
         }
         return itm;
-    }
-
-    @Override
-    public void run() {
-        load(Integer.parseInt(Optional.ofNullable(System.getenv("JRULEXPR_STARTUP_WAIT")).orElse("5000")),
-                Integer.parseInt(Optional.ofNullable(System.getenv("JRULEXPR_RULE_WAIT")).orElse("50")));
     }
 }
