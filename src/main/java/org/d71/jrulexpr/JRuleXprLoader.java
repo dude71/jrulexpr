@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -21,52 +22,36 @@ public class JRuleXprLoader extends JRule {
 
     private static final String LOADER_LOCK = "jrx-loader-lock";
 
+    private static final long LOADER_LOCK_MS = 20000L;
+
     private static final String NR_JRX_LOADED = "NR_JRX_LOADED";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JRuleXprLoader.class);
 
     static {
-        if (System.getProperty(LOADER_LOCK) == null) {
-            System.setProperty(LOADER_LOCK, "true");
-            load();        
+        String lock = System.getProperty(LOADER_LOCK);
+        Long lockEpoch = lock == null ? null : Long.parseLong(lock);
+        long now = ZonedDateTime.now().toInstant().toEpochMilli();
+        if (lockEpoch == null || now > lockEpoch) {
+            System.setProperty(LOADER_LOCK, Long.valueOf(now + LOADER_LOCK_MS).toString());
+            load();
         } else {
-            LOGGER.info("JRuleXprLoader static initializer: jrx-loader-lock is already set, skipping load.");
+            LOGGER.info("JRuleXprLoader: another instance is loading or recently loaded, skipping load. lockEpoch="
+                    + lockEpoch + ", now=" + now);
         }
     }
 
     private synchronized static void load() {
-        int startupWaitMs = Integer.parseInt(Optional.ofNullable(System.getenv("JRULEXPR_STARTUP_WAIT")).orElse("5000"));
+        int startupWaitMs = Integer
+                .parseInt(Optional.ofNullable(System.getenv("JRULEXPR_STARTUP_WAIT")).orElse("5000"));
         int waitPerRuleMs = Integer.parseInt(Optional.ofNullable(System.getenv("JRULEXPR_RULE_WAIT")).orElse("50"));
         LOGGER.info("## JRuleXprLoader.load: startupWaitMs=" + startupWaitMs + ", waitPerRuleMs=" + waitPerRuleMs);
         storeJrxLoaded(0);
-        if (rulesExist()) {
-            LOGGER.info("JRuleXprLoader.load: rules already exist, skipping generation.");
-            doJrxLoadedUpdateTimer(startupWaitMs);
+        if (startupWaitMs > 0) {
+            doStartupWaitTimer(startupWaitMs, waitPerRuleMs);
         } else {
-            if (startupWaitMs > 0) {
-                doStartupWaitTimer(startupWaitMs, waitPerRuleMs);
-            } else {
-                generateItemRules(waitPerRuleMs);
-            }
+            generateItemRules(waitPerRuleMs);
         }
-    }
-
-    private static boolean rulesExist() {
-        boolean rv = false;
-        try {
-            Optional<String> ruleClass = JrxItemRegistry.getInstance().getRuleItems().stream().findFirst()
-                    .map(JrxItem::getRuleClassName);
-            if (!ruleClass.isEmpty()) {
-                LOGGER.info("JRuleXprLoader checking for existing class " + ruleClass.get());
-                Class.forName(ItemRuleGenerator.RULE_PKG + "." + ruleClass.get(), false,
-                        JRuleXprLoader.class.getClassLoader());
-                rv = true;
-            }
-        } catch (Exception e) {
-            LOGGER.error(e.getClass().getCanonicalName() + " " + e.getMessage());
-        }
-        LOGGER.info("JRuleXpr.rulesExist=" + rv);
-        return rv;
     }
 
     private static void storeJrxLoaded(int state) {
@@ -94,7 +79,7 @@ public class JRuleXprLoader extends JRule {
         return itm;
     }
 
-   private static void doStartupWaitTimer(int startupWaitMs, int waitPerRuleMs) {
+    private static void doStartupWaitTimer(int startupWaitMs, int waitPerRuleMs) {
         LOGGER.info("JRuleXprLoader scheduling startup wait timer for " + startupWaitMs + " ms.");
         TimerTask task = new TimerTask() {
             @Override
@@ -108,11 +93,40 @@ public class JRuleXprLoader extends JRule {
 
     private static void generateItemRules(int waitPerRuleMs) {
         int loadedWaitMs = Integer.parseInt(Optional.ofNullable(System.getenv("JRULEXPR_LOADED_WAIT")).orElse("2000"));
-        LOGGER.info("JRuleXprLoader generating item rules with waitPerRuleMs=" + waitPerRuleMs + " and genWaitMs=" + loadedWaitMs);
-        JRuleXprRulesGenerator.getInstance().generateItemRules();
-        int nrOfRules = JrxItemRegistry.getInstance().getRuleItems().size();
-        int wait = loadedWaitMs + (nrOfRules * waitPerRuleMs);
+        LOGGER.info("JRuleXprLoader generating item rules with waitPerRuleMs=" + waitPerRuleMs + " and genWaitMs="
+                + loadedWaitMs);
+        int generated = 0;
+        ItemRuleGenerator generator = new ItemRuleGenerator();
+
+        for (JrxItem item : JrxItemRegistry.getInstance().getRuleItems()) {
+            if (!itemRuleClassExist(item)) {
+                generator.generate(item);
+                generated++;
+            } else {
+                LOGGER.info("Rule class already exists for " + item.getName() + ", skipping generation.");
+            }
+        }
+        int wait = loadedWaitMs + (generated * waitPerRuleMs);
+        if (generated > 0) {
+            generator.makeAll();
+            LOGGER.info("JRuleXprLoader: Generated " + generated + " rules");
+        } else {
+            LOGGER.info("JRuleXprLoader: No new rules generated");
+        }
         doJrxLoadedUpdateTimer(wait);
+    }
+
+    private static boolean itemRuleClassExist(JrxItem item) {
+        boolean found;
+        try {
+            LOGGER.debug("JRuleXprLoader checking for existing class " + item.getRuleClassName());
+            Class.forName(ItemRuleGenerator.RULE_PKG + "." + item.getRuleClassName(), false,
+                    JRuleXprLoader.class.getClassLoader());
+            found = true;
+        } catch (ClassNotFoundException e) {
+            found = false;
+        }
+        return found;
     }
 
     private static void doJrxLoadedUpdateTimer(int waitMs) {
