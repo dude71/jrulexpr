@@ -108,18 +108,16 @@ execute phase
 - COALESCE
 
 
-# JRuleXpr BOOT order
-
-/addons/jrule-4.0.0-SNAPSHOT.jar
-/ext-lib/jrulexpr-1.1-SNAPSHOT-jar-with-dependencies.jar
-/rules-user/JRuleXprLoader.java
-
-
-1. jrule loaded, ext-lib/jrulexpr loaded 
-2. JRuleXprLoader.java in rules-user compiled to class by jrule
-3. JRuleXprLoader.class (=JRule) loaded/executed (as Thread so it does not block jrule!)
-4. first item JRule class generated
-5. first JRule complied to class, jrule will recompile all rules in rules-user!
-6. restart at 2. -> JRuleXprLoader sees first class exists (rulesCreated=true) -> no rule generation again
 
 JRULEXPR_ ENV vars in /etc/default/openhab5
+
+
+# Build multi jar:
+
+jrulexpr-full (no loader, ext-lib):
+
+mvn clean package assembly:single -DskipTests
+
+jrulexpr-loader (rules-jar):
+
+ mvn clean package -DskipTests

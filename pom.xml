@@ -171,10 +171,9 @@
           <version>3.0.0</version>
         </plugin>
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
           <configuration>
-            <finalName>${project.artifactId}-${project.version}-full</finalName>
+            <finalName>${project.artifactId}-${project.version}-runner</finalName>
             <appendAssemblyId>false</appendAssemblyId>
             <descriptorRefs>
               <descriptorRef>jar-with-dependencies</descriptorRef>
@@ -187,7 +186,7 @@
               <goals>
                 <goal>single</goal>
               </goals>
-            </execution>
+            </execution>            
           </executions>
         </plugin>
         <plugin>
@@ -195,9 +194,10 @@
           <artifactId>maven-jar-plugin</artifactId>
           <version>3.3.0</version>
           <configuration>
-            <excludes>
-              <exclude>*jrule*.jar</exclude>
-            </excludes>           
+            <classifier>generator</classifier>
+            <includes>
+              <include>org/openhab/automation/jrule/rules/user/*</include>
+            </includes>        
           </configuration>
         </plugin>
       </plugins>
