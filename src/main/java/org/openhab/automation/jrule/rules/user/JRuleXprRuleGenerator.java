@@ -50,6 +50,7 @@ public class JRuleXprRuleGenerator extends JRule {
     private static final Logger LOGGER = LoggerFactory.getLogger(JRuleXprRuleGenerator.class);
 
     static {
+        LOGGER.info("JRuleXprRuleGenerator static initializer called, checking for generation lock.");
         String lock = System.getProperty(GENERATOR_LOCK);
         Long lockEpoch = lock == null ? null : Long.parseLong(lock);
         long now = ZonedDateTime.now().toInstant().toEpochMilli();
@@ -65,7 +66,7 @@ public class JRuleXprRuleGenerator extends JRule {
         int startupWaitMs = Integer
                 .parseInt(Optional.ofNullable(System.getenv("JRULEXPR_STARTUP_WAIT")).orElse("5000"));
         int waitPerRuleMs = Integer.parseInt(Optional.ofNullable(System.getenv("JRULEXPR_RULE_WAIT")).orElse("50"));
-        LOGGER.info("## JRuleXprGenerator.generate: startupWaitMs=" + startupWaitMs + ", waitPerRuleMs=" + waitPerRuleMs);
+        LOGGER.info("## JRuleXprRuleGenerator.generate: startupWaitMs=" + startupWaitMs + ", waitPerRuleMs=" + waitPerRuleMs);
         storeJrxLoaded(0);
         if (startupWaitMs > 0) {
             doStartupWaitTimer(startupWaitMs, waitPerRuleMs);
@@ -100,7 +101,7 @@ public class JRuleXprRuleGenerator extends JRule {
     }
 
     private static void doStartupWaitTimer(int startupWaitMs, int waitPerRuleMs) {
-        LOGGER.info("JRuleXprGenerator scheduling startup wait timer for " + startupWaitMs + " ms.");
+        LOGGER.info("JRuleXprRuleGenerator scheduling startup wait timer for " + startupWaitMs + " ms.");
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
@@ -113,7 +114,7 @@ public class JRuleXprRuleGenerator extends JRule {
 
     private static void generateItemRules(int waitPerRuleMs) {
         int loadedWaitMs = Integer.parseInt(Optional.ofNullable(System.getenv("JRULEXPR_LOADED_WAIT")).orElse("2000"));
-        LOGGER.info("JRuleXprGenerator generating item rules with waitPerRuleMs=" + waitPerRuleMs + " and genWaitMs="
+        LOGGER.info("JRuleXprRuleGenerator generating item rules with waitPerRuleMs=" + waitPerRuleMs + " and genWaitMs="
                 + loadedWaitMs);
         int generated = 0;
         ItemRuleGenerator generator = new ItemRuleGenerator();
@@ -129,9 +130,9 @@ public class JRuleXprRuleGenerator extends JRule {
         int wait = loadedWaitMs + (generated * waitPerRuleMs);
         if (generated > 0) {
             generator.makeAll();
-            LOGGER.info("JRuleXprGenerator: Generated " + generated + " rules");
+            LOGGER.info("JRuleXprRuleGenerator: Generated " + generated + " rules");
         } else {
-            LOGGER.info("JRuleXprGenerator: No new rules generated");
+            LOGGER.info("JRuleXprRuleGenerator: No new rules generated");
         }
         doJrxLoadedUpdateTimer(wait);
     }
@@ -139,7 +140,7 @@ public class JRuleXprRuleGenerator extends JRule {
     private static boolean itemRuleClassExist(JrxItem item) {
         boolean found;
         try {
-            LOGGER.debug("JRuleXprGenerator checking for existing class " + item.getRuleClassName());
+            LOGGER.debug("JRuleXprRuleGenerator checking for existing class " + item.getRuleClassName());
             Class.forName(ItemRuleGenerator.RULE_PKG + "." + item.getRuleClassName(), false,
                     JRuleXprRuleGenerator.class.getClassLoader());
             found = true;
@@ -157,7 +158,7 @@ public class JRuleXprRuleGenerator extends JRule {
                 storeJrxLoaded(1);
             }
         };
-        LOGGER.info("JRuleXprGenerator scheduling JRX_LOADED update in " + waitMs + " ms.");
+        LOGGER.info("JRuleXprRuleGenerator scheduling JRX_LOADED update in " + waitMs + " ms.");
         timer.schedule(task, waitMs);
     }
 }
