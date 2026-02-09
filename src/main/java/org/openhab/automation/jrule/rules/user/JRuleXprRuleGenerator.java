@@ -50,7 +50,7 @@ public class JRuleXprRuleGenerator extends JRule {
     private static final Logger LOGGER = LoggerFactory.getLogger(JRuleXprRuleGenerator.class);
 
     static {
-        LOGGER.info("JRuleXprRuleGenerator static initializer called, checking for generation lock.");
+        LOGGER.info("## JRuleXprRuleGenerator static initializer called, checking for generation lock.");
         String lock = System.getProperty(GENERATOR_LOCK);
         Long lockEpoch = lock == null ? null : Long.parseLong(lock);
         long now = ZonedDateTime.now().toInstant().toEpochMilli();
@@ -66,7 +66,7 @@ public class JRuleXprRuleGenerator extends JRule {
         int startupWaitMs = Integer
                 .parseInt(Optional.ofNullable(System.getenv("JRULEXPR_STARTUP_WAIT")).orElse("5000"));
         int waitPerRuleMs = Integer.parseInt(Optional.ofNullable(System.getenv("JRULEXPR_RULE_WAIT")).orElse("50"));
-        LOGGER.info("## JRuleXprRuleGenerator.generate: startupWaitMs=" + startupWaitMs + ", waitPerRuleMs=" + waitPerRuleMs);
+        LOGGER.info(">> JRuleXprRuleGenerator.generate: startupWaitMs=" + startupWaitMs + ", waitPerRuleMs=" + waitPerRuleMs);        
         storeJrxLoaded(0);
         if (startupWaitMs > 0) {
             doStartupWaitTimer(startupWaitMs, waitPerRuleMs);

@@ -114,10 +114,11 @@ JRULEXPR_ ENV vars in /etc/default/openhab5
 
 # Build multi jar:
 
-jrulexpr-full (no loader, ext-lib):
+mvn clean package -DskipTests
 
-mvn clean package assembly:single -DskipTests
+- jrulexpr-lib (no loader, ext-lib/):
 
-jrulexpr-loader (rules-jar):
+- jrulexpr-rule-gen (rules-jar/):
 
- mvn clean package -DskipTests
+ copy to hub:
+ scp target/jrulexpr-1.1-SNAPSHOT-lib.jar root@hub-dev:/opt/oh/ext-lib/; scp target/jrulexpr-1.1-SNAPSHOT-rulegen.jar root@hub-dev:/opt/oh/rules-jar/
