@@ -170,6 +170,10 @@
           <artifactId>maven-project-info-reports-plugin</artifactId>
           <version>3.0.0</version>
         </plugin>
+        <plugin>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.6.1</version>
+        </plugin>        
       </plugins>
     </pluginManagement>
     <plugins>
@@ -185,6 +189,14 @@
               <configuration>
                 <shadedArtifactAttached>true</shadedArtifactAttached>
                 <shadedClassifierName>lib</shadedClassifierName>
+                <filters>
+                  <filter>
+                    <artifact>*:*</artifact>
+                    <excludes>
+                      <exclude>org/openhab/automation/jrule/rules/user/**</exclude>
+                    </excludes>
+                  </filter>
+                </filters>                
               </configuration>              
             </execution> 
             <execution>
@@ -208,25 +220,7 @@
             </execution>                                  
           </executions>
         </plugin>
-        <plugin>
-          <artifactId>maven-jar-plugin</artifactId>
-          <configuration>
-            <includes>
-              <include>org/openhab/automation/jrule/rules/user/*</include>
-            </includes>        
-          </configuration>                        
-          <!-- <executions>
-            <execution>
-              <id>default-jar</id>
-              <phase>package</phase>
-              <configuration>
-                <includes>
-                  <include>org/openhab/automation/jrule/rules/user/*</include>
-                </includes>        
-              </configuration>              
-            </execution>
-          </executions> -->
-        </plugin>              
+             
     </plugins>
   </build>
 </project>
