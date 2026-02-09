@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -34,16 +33,15 @@ import org.slf4j.LoggerFactory;
 public class ItemRuleGenerator {
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemRuleGenerator.class);
 
-    private static final String RULE_PKG = "org.openhab.automation.jrule.rules.user.generated";
-    // private static final String RULE_PKG =
-    // "org.openhab.automation.jrule.generated.jrx";
-    private static final String RULE_PATH = "../conf/automation/jrule/rules";
-    public static final String EVERY_MIN = "\"0 * * * * *\"";
-    // private static final String RULE_PATH = "../conf/automation/jrule/gen";
+    private static final String RULE_PATH = System.getenv("OPENHAB_CONF") + "/automation/jrule/rules";
 
     private Map<String, ClassSourceGenerator> classes = new HashMap<>();
 
     private UnitSourceGenerator unitSG = UnitSourceGenerator.create(RULE_PKG);
+
+    public static final String RULE_PKG = "org.openhab.automation.jrule.rules.user";
+
+    public static final String EVERY_MIN = "\"0 * * * * *\"";
 
     public ItemRuleGenerator() {
     }

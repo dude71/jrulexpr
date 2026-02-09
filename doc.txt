@@ -6,7 +6,7 @@ scp /home/ct/.m2/repository/org/d71/jrule-eval/1.0-SNAPSHOT/jrule-eval-1.0-SNAPS
 
 mvn install:install-file -Dfile=src/main/resources/org.openhab.automation.jrule-4.x.x-beta19.1-pre-release.jar -DgroupId=org.openhab.automation -DartifactId=jrule -Dversion=4.0.0-SNAPSHOT
 
-mvn assembly:single (target/jrule-eval...jar-with-dependencies.jar)
+mvn clean compile assembly:single (target/jrule-eval...jar-with-dependencies.jar)
 
 OR
 
@@ -106,3 +106,19 @@ execute phase
 - allowNulls -list- X
 - allowNullsAll X
 - COALESCE
+
+
+
+JRULEXPR_ ENV vars in /etc/default/openhab5
+
+
+# Build multi jar:
+
+mvn clean package -DskipTests
+
+- jrulexpr-lib (no loader, ext-lib/):
+
+- jrulexpr-rule-gen (rules-jar/):
+
+ copy to hub:
+ scp target/jrulexpr-1.1-SNAPSHOT-lib.jar root@hub-dev:/opt/oh/ext-lib/; scp target/jrulexpr-1.1-SNAPSHOT-rulegen.jar root@hub-dev:/opt/oh/rules-jar/
