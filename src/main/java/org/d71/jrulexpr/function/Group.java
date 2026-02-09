@@ -1,0 +1,81 @@
+package org.d71.jrulexpr.function;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import org.d71.jrulexpr.item.JrxItem;
+import org.d71.jrulexpr.item.JrxItemRegistry;
+import org.d71.jrulexpr.rule.RuleTrigger;
+import org.openhab.automation.jrule.items.JRuleItem;
+import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
+
+import com.ezylang.evalex.EvaluationException;
+import com.ezylang.evalex.Expression;
+import com.ezylang.evalex.data.EvaluationValue;
+import com.ezylang.evalex.functions.AbstractFunction;
+import com.ezylang.evalex.functions.FunctionParameter;
+import com.ezylang.evalex.parser.Token;
+
+@FunctionParameter(name = "group")
+public class Group extends AbstractFunction implements JrxFunction<Boolean> { // group change triggered
+    private JrxItem item;
+
+    private JrxItemRegistry itemRegistry;
+
+    private String groupName;
+
+    @Override
+    public void setItem(JrxItem item) {
+        this.item = item;
+    }
+
+    @Override
+    public void setItemRegistry(JrxItemRegistry registry) {
+        itemRegistry = registry;
+    }
+
+    @Override
+    public Boolean getValue(Object... parameters) {
+        if (parameters.length == 0) {
+            return false;
+        } else {
+            String groupName = (String) parameters[0];
+            JRuleItemEvent evt = item.getLastTriggeredBy() instanceof JRuleItemEvent ? (JRuleItemEvent) item.getLastTriggeredBy() : null;
+            return evt != null && (groupName.equals(evt.getItem().getName()) || triggeringItemInGroup(evt.getItem(), groupName));
+        }
+    }
+
+    @Override
+    public EvaluationValue evaluate(Expression expression, Token functionToken, EvaluationValue... parameterValues) throws EvaluationException {
+        Object[] param = parameterValues.length > 0 ? new String[]{parameterValues[0].getStringValue()} : new String[0];
+        return EvaluationValue.booleanValue(getValue(param));
+    }
+
+    @Override
+    public String getToken() {
+        return "GROUP";
+    }
+
+    @Override
+    public void setParameters(List<Object> values) {
+        if (values.size() == 1) {
+            groupName = (String) values.get(0);
+        }
+    }
+
+    @Override
+    public Set<RuleTrigger> getRuleTriggers() {
+        return groupName == null ? Collections.emptySet() : Collections.singleton(new RuleTrigger() {
+            @Override
+            public Set<String> getGroupNames() {
+                return Collections.singleton(groupName);
+            }
+        });
+    }
+
+    private boolean triggeringItemInGroup(JRuleItem trItem, String groupName) {
+        return itemRegistry.getItem(trItem.getName()).getGroupNames().contains(groupName);
+    }
+
+}

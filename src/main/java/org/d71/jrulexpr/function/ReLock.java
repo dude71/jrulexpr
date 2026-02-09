@@ -1,0 +1,65 @@
+package org.d71.jrulexpr.function;
+
+import java.time.Duration;
+
+import org.d71.jrulexpr.item.JrxItem;
+import org.openhab.automation.jrule.internal.handler.JRuleTimerHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ezylang.evalex.EvaluationException;
+import com.ezylang.evalex.Expression;
+import com.ezylang.evalex.data.EvaluationValue;
+import com.ezylang.evalex.functions.AbstractFunction;
+import com.ezylang.evalex.functions.FunctionParameter;
+import com.ezylang.evalex.parser.Token;
+
+@FunctionParameter(name = "duration", isVarArg = true)
+public class ReLock extends AbstractFunction implements JrxFunction<Boolean> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReLock.class);
+
+    private String ruleName;
+
+    @Override
+    public final String getToken() {
+        return "RELOCK";
+    }
+
+    @Override
+    public void setItem(JrxItem item) {
+        this.ruleName = item.getRuleMethodName();
+    }
+
+    @Override
+    public Boolean getValue(Object... parameters) {
+        boolean rv = false;
+        Duration duration = Duration.ofSeconds((int) parameters[0]);
+        JRuleTimerHandler timerHandler = JRuleTimerHandler.get();
+        LOGGER.debug("timerHandler " + timerHandler.hashCode());
+
+        synchronized (timerHandler) {
+            if (timerHandler.isTimeLocked(ruleName)) {
+                LOGGER.debug("timeLocked");
+                timerHandler.cancelTimer(JRuleTimerHandler.LOCK_PREFIX + ruleName);
+                timerHandler.getTimeLock(ruleName, duration);
+                rv = true;
+            } else {
+                LOGGER.debug("NOT timelocked");
+            }
+        }
+
+        return rv;
+    }
+
+    @Override
+    public EvaluationValue evaluate(Expression expression, Token functionToken, EvaluationValue... parameterValues)
+            throws EvaluationException {
+
+        boolean relocked = getValue(parameterValues.length == 1 ? parameterValues[0].getNumberValue().intValue() : 1);
+
+        LOGGER.debug(ruleName + ": relocked=" + relocked);
+
+        return EvaluationValue.booleanValue(relocked);
+    }
+
+}
