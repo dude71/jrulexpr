@@ -9,6 +9,7 @@ import org.openhab.automation.jrule.rules.JRule;
 import org.openhab.automation.jrule.rules.value.JRuleDecimalValue;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemNotFoundException;
+import org.openhab.core.library.types.DecimalType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +44,7 @@ public class JRuleXprRuleGenerator extends JRule {
 
     private static final String GENERATOR_LOCK = "jrx-loader-lock";
 
-    private static final long GENERATOR_LOCK_MS = 20000L;
+    private static final long GENERATOR_LOCK_MS = 25000L;
 
     private static final String NR_JRX_LOADED = "NR_JRX_LOADED";
 
@@ -67,8 +68,13 @@ public class JRuleXprRuleGenerator extends JRule {
                 .parseInt(Optional.ofNullable(System.getenv("JRULEXPR_STARTUP_WAIT")).orElse("5000"));
         int waitPerRuleMs = Integer.parseInt(Optional.ofNullable(System.getenv("JRULEXPR_RULE_WAIT")).orElse("50"));
         LOGGER.info(">> JRuleXprRuleGenerator.generate: startupWaitMs=" + startupWaitMs + ", waitPerRuleMs=" + waitPerRuleMs);        
-        storeJrxLoaded(0);
-        if (startupWaitMs > 0) {
+        
+        Item jrxLoadedItem = getJrxLoadedItem();
+        boolean jrxLoaded = jrxLoadedItem != null && DecimalType.valueOf("1").equals(jrxLoadedItem.getStateAs(DecimalType.class));
+        LOGGER.debug("JRuleXprRuleGenerator: jrxLoaded=" + jrxLoaded + " (item state: " + (jrxLoadedItem != null ? jrxLoadedItem.getState() : "null") + ")");
+
+        if (!jrxLoaded && startupWaitMs > 0) {
+            storeJrxLoaded(0);
             doStartupWaitTimer(startupWaitMs, waitPerRuleMs);
         } else {
             generateItemRules(waitPerRuleMs);
@@ -124,7 +130,7 @@ public class JRuleXprRuleGenerator extends JRule {
                 generator.generate(item);
                 generated++;
             } else {
-                LOGGER.info("Rule class already exists for " + item.getName() + ", skipping generation.");
+                LOGGER.debug("Rule class already exists for " + item.getName() + ", skipping generation.");
             }
         }
         int wait = loadedWaitMs + (generated * waitPerRuleMs);
@@ -140,7 +146,7 @@ public class JRuleXprRuleGenerator extends JRule {
     private static boolean itemRuleClassExist(JrxItem item) {
         boolean found;
         try {
-            LOGGER.debug("JRuleXprRuleGenerator checking for existing class " + item.getRuleClassName());
+            LOGGER.trace("JRuleXprRuleGenerator checking for existing class " + item.getRuleClassName());
             Class.forName(ItemRuleGenerator.RULE_PKG + "." + item.getRuleClassName(), false,
                     JRuleXprRuleGenerator.class.getClassLoader());
             found = true;

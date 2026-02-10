@@ -37,8 +37,6 @@ public class ItemRuleGenerator {
 
     private Map<String, ClassSourceGenerator> classes = new HashMap<>();
 
-    private UnitSourceGenerator unitSG = UnitSourceGenerator.create(RULE_PKG);
-
     public static final String RULE_PKG = "org.openhab.automation.jrule.rules.user";
 
     public static final String EVERY_MIN = "\"0 * * * * *\"";
@@ -66,12 +64,12 @@ public class ItemRuleGenerator {
 
     public void makeAll() {
         LOGGER.info("Flushing rules");
-        classes.values().forEach(clz -> {
-            unitSG.addClass(clz);
+        for (ClassSourceGenerator csg : classes.values()) {
+            UnitSourceGenerator unitSG = UnitSourceGenerator.create(RULE_PKG);
+            unitSG.addClass(csg);
             unitSG.make();
             unitSG.storeToClassPath(RULE_PATH);
-            unitSG = UnitSourceGenerator.create(RULE_PKG);
-        });
+        }
     }
 
     private ClassSourceGenerator createClass(JrxItem item) {
