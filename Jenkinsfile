@@ -32,8 +32,8 @@ pipeline {
                 sshPublisherDesc(
                   configName: "hub.ha",
                   transfers: [
-                    sshTransfer(sourceFiles: 'target/jrulexpr-1.0-SNAPSHOT-lib.jar', removePrefix: 'target', remoteDirectory: '/tmp/'),
-                    sshTransfer(sourceFiles: 'target/jrulexpr-1.0-SNAPSHOT-rulegen.jar', removePrefix: 'target', remoteDirectory: '/tmp/')
+                    sshTransfer(sourceFiles: '**/target/jrulexpr-1.0-SNAPSHOT-lib.jar', removePrefix: 'target', remoteDirectory: 'opt/oh/ext-lib/'),
+                    sshTransfer(sourceFiles: '**/target/jrulexpr-1.0-SNAPSHOT-rulegen.jar', removePrefix: 'target', remoteDirectory: 'opt/oh/rules-jar/')
                 ],
                   verbose: true
                 )
