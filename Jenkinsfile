@@ -32,8 +32,8 @@ pipeline {
                 sshPublisherDesc(
                   configName: "hub.ha",
                   transfers: [
-                    sshTransfer(sourceFiles: 'target/jrulexpr-1.0-SNAPSHOT-lib.jar', removePrefix: 'target', remoteDirectory: '/etc/openhab5/automation/jrule/ext-lib/'),
-                    sshTransfer(sourceFiles: 'target/jrulexpr-1.0-SNAPSHOT-rulegen.jar', removePrefix: 'target', remoteDirectory: '/etc/openhab5/automation/jrule/rules-jar/')
+                    sshTransfer(sourceFiles: 'target/jrulexpr-1.0-SNAPSHOT-lib.jar', removePrefix: 'target', remoteDirectory: '/tmp/'),
+                    sshTransfer(sourceFiles: 'target/jrulexpr-1.0-SNAPSHOT-rulegen.jar', removePrefix: 'target', remoteDirectory: '/tmp/')
                 ],
                   verbose: true
                 )
