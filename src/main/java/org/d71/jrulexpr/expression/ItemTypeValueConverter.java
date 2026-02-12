@@ -24,11 +24,13 @@ public class ItemTypeValueConverter implements EvaluationValueConverterIfc {
 
     @Override
     public EvaluationValue convertObject(Object object, ExpressionConfiguration configuration) {
-        Object convertedObj = object instanceof JRuleValue ? ValueConverter.convertToObject((JRuleValue) object)
+        Object convertedObj = object instanceof JRuleValue ? ValueConverter.convertValueToObject((JRuleValue) object)
                 : defaultConverter.convertObject(object, configuration);
         EvaluationValue val;
 
-        if (convertedObj instanceof EvaluationValue)
+        if (object == null) {
+            val = EvaluationValue.NULL_VALUE;
+        } else if (convertedObj instanceof EvaluationValue)
             val = (EvaluationValue)convertedObj;
         else if (convertedObj instanceof BigDecimal)
             val = EvaluationValue.numberValue((BigDecimal) convertedObj);

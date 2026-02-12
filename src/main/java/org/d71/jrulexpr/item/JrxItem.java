@@ -15,7 +15,6 @@ import org.d71.jrulexpr.function.JrxFunction;
 import org.openhab.automation.jrule.internal.handler.JRuleEventHandler;
 import org.openhab.automation.jrule.items.JRuleItem;
 import org.openhab.automation.jrule.items.metadata.JRuleItemMetadata;
-import org.openhab.automation.jrule.rules.JRule;
 import org.openhab.automation.jrule.rules.event.JRuleEvent;
 import org.openhab.automation.jrule.rules.value.JRuleValue;
 import org.openhab.core.types.State;
@@ -219,24 +218,24 @@ public class JrxItem {
     public JRuleValue evaluateJrxf() {
         Object eval = createJrxfItemExpression().evaluate();
         LOGGER.debug("eval {} jrxf {} -> {}", new Object[]{getName(), getJrxf(), eval});
-        return ValueConverter.convertToValue(eval, getType());
+        return ValueConverter.convertObjectToValue(eval, getType());
     }
 
     public JRuleValue evaluateJrxt() {
         Object eval = createJrxtItemExpression().evaluate();
         LOGGER.debug("eval {} jrxt {} -> {}", new Object[]{getName(), getJrxt(), eval});
-        return ValueConverter.convertToValue(eval, getType());
+        return ValueConverter.convertObjectToValue(eval, getType());
     }
 
-    public Optional<JRuleValue> evaluateNewValue() {
-        Optional<JRuleValue> value;
+    public JRuleValue evaluateNewState() {
+        JRuleValue value;
         String methodName = getRuleMethodName();
 
         if (evaluateJrxp()) {
-            value = Optional.ofNullable(getJrx() == null || evaluateJrx() ? evaluateJrxt() : (skipJrxf() ? null : evaluateJrxf()));
+            value = getJrx() == null || evaluateJrx() ? evaluateJrxt() : (skipJrxf() ? item.getState() : evaluateJrxf());
         } else {
-            value = Optional.empty();
             LOGGER.debug("-- pre condition {} NOT met for {}", new Object[]{getJrxp(), methodName});
+            value = item.getState();
         }
         return value;
     }
@@ -250,7 +249,11 @@ public class JrxItem {
 
         if (curr == null || !curr.equals(value) || forceCmd()) {
             LOGGER.info("{} -> {} ({})", new Object[]{value, item.getName(), item.getType()});
-            item.sendUncheckedCommand(value);
+            if (value == null) {
+                item.postNullUpdate();
+            } else {
+                item.sendUncheckedCommand(value);
+            }
         } else {
             LOGGER.info("skip {} -> {} (curr={})", new Object[]{value, getName(), curr});
         }

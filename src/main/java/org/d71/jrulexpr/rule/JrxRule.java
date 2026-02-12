@@ -5,6 +5,7 @@ import org.d71.jrulexpr.item.JrxItemRegistry;
 import org.openhab.automation.jrule.rules.JRule;
 import org.openhab.automation.jrule.rules.event.JRuleEvent;
 import org.openhab.automation.jrule.rules.event.JRuleItemEvent;
+import org.openhab.automation.jrule.rules.value.JRuleValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,9 +27,8 @@ public class JrxRule extends JRule {
             JrxItem item = JrxItemRegistry.getInstance().getItem(itemName);
             item.setLastTriggeredBy(event);
             String methodName = item.getRuleMethodName();
-            LOGGER.debug(">> {} triggered by {}", new Object[] {methodName, eventInfo(event)});
-            
-            item.evaluateNewValue().ifPresent(item::send);
+            LOGGER.debug(">> {} triggered by {}", new Object[] {methodName, eventInfo(event)});            
+            item.send(item.evaluateNewState());
         } catch (Exception e) {
             LOGGER.error("ERROR: ", e);
         }

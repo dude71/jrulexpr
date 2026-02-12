@@ -38,7 +38,7 @@ public class JrxItemExpressionTest extends AbstractJrxExpressionTest {
 
         assertTrue(item.getFunctions().size() == 1);
         assertTrue(item.getFunctions().iterator().next().getRuleTriggers().iterator().next().getCronExpression() != null);
-        assertNotEquals(item.getState(), item.evaluateNewValue().get());
+        assertNotEquals(item.getState(), item.evaluateNewState());
     }
 
     @Test

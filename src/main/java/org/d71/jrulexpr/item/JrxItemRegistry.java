@@ -27,7 +27,7 @@ public class JrxItemRegistry {
         return jrxItemRegistry;
     }
 
-    private static final ItemRegistry getItemRegistry() {
+    private static ItemRegistry getItemRegistry() {
         return JRuleEventHandler.get().getItemRegistry();
     }
 
@@ -46,13 +46,12 @@ public class JrxItemRegistry {
     }
 
     public JrxItem getItem(String name) {
-        JrxItem item = null;
         try {
-            item = new JrxItem(getJRuleItem(name));
+            return new JrxItem(getJRuleItem(name));
         } catch (JRuleItemNotFoundException e) {
             LOGGER.warn("JRuleItem {} not found!", name);
+            throw e;
         }        
-        return item;
     }
 
     private JRuleItem getJRuleItem(String name) throws JRuleItemNotFoundException {
@@ -67,5 +66,4 @@ public class JrxItemRegistry {
         // defined as Group item in OH!
         return getItemRegistry().get(item.getName()).getGroupNames();
     }
-
 }
