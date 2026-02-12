@@ -25,6 +25,10 @@ pipeline {
         }
         stage('Deploy') {
           steps {
+sh '''
+      echo "--- Current Working Directory: $(pwd) ---"
+      find . -name "*.jar" | grep "target"
+    '''              
             sshPublisher(
               continueOnError: false,
               failOnError: true,
