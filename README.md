@@ -1,6 +1,6 @@
 # JRuleXpr
 
-JRuleXpr (JRule expressions) is a small framework for creating [JRule](https://github.com/seaside1/jrule) rules from Openhab item expressions. It is well suited for sensor based home automation. It removes the need to manually write trigger based code.
+JRuleXpr (JRule expressions) is a small JRule automation extension for creating [JRule](https://github.com/seaside1/jrule) rules from Openhab item expressions. It is well suited for sensor based home automation. It removes the need to manually write trigger based code.
 
 JRuleXpr will generate JRule rules from expressions specified in metadata of Openhab items. The expressions are evaluated by [EvalEx](https://github.com/ezylang/EvalEx).
 
