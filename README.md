@@ -23,7 +23,7 @@ The JRuleXpr rule generator will scan all Openhab items at Openhab startup for j
 
 These are the metadata fields that JRuleXpr uses:
 
-* **jrxc**   Configuration: jruleClass, cron, forceCmd, noTrigger, skipJrxf
+* **jrxc**   Configuration: ruleClass, cron, forceCmd, noTrigger, skipJrxf
 * **jrxp**   Pre eval: boolean expression which is evaluated when rule is triggered. When false it will not continue.
 * **jrx**    Main eval: boolean expression which is evaluated after jrxp passes.
 * **jrxt**   JRule value sent to item when jrx is true.
@@ -31,6 +31,24 @@ These are the metadata fields that JRuleXpr uses:
 * **jrxv_**  variables/subexpressions to be used in in jrxp, jrx, jrxt, jrxf
 
 Inside expressions [EvalEx functions](https://ezylang.github.io/EvalEx/references/functions.html) and JRuleXpr functions can be used. JRuleXpr functions extend the core functionality and can make the jrx(..) expressions more powerful.
+
+## Jrxc
+
+* **ruleClass**  The name of the class where the item rule will be added as a method. Default is the item's JRule type suffixed with "Rules". Example: NumberRules. The method name is the item name in lowerCamelCase. Example: ruleClass=AlarmRules.
+* **cron** A cron expression used to trigger the item rule. Item rules will be automatically triggered when the HOUR or MINUTE functions are used inside their jrxp or jrx metadata (every hour or minute). If these functions are not used or an extra cron is needed a jrxc cron expression can be used.
+* **forceCmd** Force state change of the item. Default behaviour is to not update the items state when the rule is triggered and no new state is evaluated by jrxt or jrxf.
+* **noTrigger** List of items that should not trigger the item rule. By default any item specified in jrxp or jrx will trigger the item rule on change. Example: noTrigger='NR_ALARM_ARMED, NR_ALARM_STAY'.
+* **skipJrxf** Do not evaluate jrxf and do not update item state when jrx evaluates to false.
+
+## Generated Java classes
+
+All generated JRule item methods call just one method:
+
+````
+execRule(String itemName, JRuleEvent event);
+````
+
+The JRule method annotations (@JRuleWhenItemChange and @JRuleWhenCronTrigger) and the itemName differ per item method. All rule logic is handled within the JRuleXpr code. Item rules with the same jrxc ruleClass are put in the same Java class. Use the same ruleClass for items with a common theme. Example "TemperatureRules" for thermostats, heaters and temperature sensors. 
 
 ## Example 1
 
