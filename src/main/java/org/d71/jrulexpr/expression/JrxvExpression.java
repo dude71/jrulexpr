@@ -46,7 +46,7 @@ public class JrxvExpression extends AbstractJRuleXprExpression<Object> {
             item.putJrxVarValueInCache(name, value);
         } else {
             value = optValue.get();
-            LOGGER.debug("Cached value {} for {}.{} retrieved from cache.", new Object[] { value, item.getName(), name });
+            LOGGER.debug("Cached value {} for {}.{} retrieved.", new Object[] { value, item.getName(), name });
         }
         return value;
     }
