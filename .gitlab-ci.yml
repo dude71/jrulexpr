@@ -1,0 +1,2 @@
+mvn_package:
+    mvn clean package -DskipTests
