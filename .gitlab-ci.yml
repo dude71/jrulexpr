@@ -1,2 +1,44 @@
-mvn_package:
-    mvn clean package -DskipTests
+variables:
+  # Force Maven to use a folder inside the project directory
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+mvn_prep:
+  stage: build
+  tags: [java-maven]
+
+  script:
+    - |
+      mkdir target
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+           --output target/jrule-4.0.0-BETA21.jar \
+           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven/org/openhab/automation/jrule/4.0.0-BETA21/jrule-4.0.0-BETA21.jar"
+
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 1 hour
+
+mvn_build:
+  stage: build
+  tags: [java-maven]
+
+  needs:
+    - job: mvn_prep
+      artifacts: true
+
+  script:
+    - |
+      mvn install:install-file -Dfile=target/jrule-4.0.0-BETA21.jar -DgroupId=org.openhab.automation -DartifactId=jrule -Dversion=4.0.0-BETA21
+      mvn compile
+
+  artifacts:
+    paths:
+      - .m2/repository/  
+    expire_in: 1 hour
+
+mvn_test:
+  stage: test
+  tags: [java-maven]
+
+  script:
+    - mvn test
