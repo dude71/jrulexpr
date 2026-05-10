@@ -2,10 +2,11 @@ variables:
   # Force Maven to use a folder inside the project directory
   MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
 
-mvn_prep:
-  stage: build
+default:
   tags: [java-maven]
 
+mvn_prep:
+  stage: build
   script:
     - |
       mkdir target
@@ -16,12 +17,10 @@ mvn_prep:
   artifacts:
     paths:
       - target/*.jar
-    expire_in: 1 hour
+    expire_in: 8 hour
 
 mvn_build:
   stage: build
-  tags: [java-maven]
-
   needs:
     - job: mvn_prep
       artifacts: true
@@ -34,11 +33,10 @@ mvn_build:
   artifacts:
     paths:
       - .m2/repository/  
-    expire_in: 1 hour
+    expire_in: 8 hour
 
 mvn_test:
   stage: test
-  tags: [java-maven]
 
   script:
     - mvn test
