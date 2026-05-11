@@ -1,0 +1,87 @@
+variables:
+  # Force Maven to use a folder inside the project directory
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+default:
+  tags: [java-maven]
+
+mvn_prep:
+  stage: build
+  script:
+    - |
+      mkdir target
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+           --output target/jrule-4.0.0-BETA21.jar \
+           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven/org/openhab/automation/jrule/4.0.0-BETA21/jrule-4.0.0-BETA21.jar"
+
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 8 hour
+
+mvn_build:
+  stage: build
+  needs:
+    - job: mvn_prep
+      artifacts: true
+
+  script:
+    - |
+      mvn install:install-file -Dfile=target/jrule-4.0.0-BETA21.jar -DgroupId=org.openhab.automation -DartifactId=jrule -Dversion=4.0.0-BETA21
+      mvn $MAVEN_OPTS compile test-compile dependency:go-offline
+
+  artifacts:
+    paths:
+      - target/ 
+      - .m2/repository
+
+mvn_test:
+  stage: test
+
+  needs:
+    - job: mvn_build
+      artifacts: true
+
+  script:
+    - mvn $MAVEN_OPTS test -Dmaven.main.skip=true
+
+mvn_package:
+  stage: deploy
+
+  needs:
+    - job: mvn_build
+      artifacts: true
+    - job: mvn_test
+
+  script:
+    - mvn $MAVEN_OPTS package -Dmaven.main.skip=true -DskipTests
+
+  artifacts:
+    paths:
+      - target/
+
+deploy_jar:
+  stage: deploy
+
+  needs:
+    - job: mvn_package
+      artifacts: true
+
+  before_script:
+    - ls -l target/
+    - 'command -v ssh-agent >/dev/null || ( apt -y install openssh )'
+    - eval $(ssh-agent -s)
+    # Create .ssh directory and trust the remote server
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY"| tr -d '\r' >~/.ssh/pk
+    - chmod 400 ~/.ssh/pk
+    - ssh-add ~/.ssh/pk
+    - ssh-keyscan $SERVER_HOST >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    # Clean old
+    - ssh $SERVER_USER@$SERVER_HOST "rm -f /opt/oh/ext-lib/jrulexpr-*-lib.jar; rm -f /opt/oh/rules-jar/jrulexpr-*-rulegen.jar"
+    # Upload
+    - scp target/jrulexpr-*-lib.jar $SERVER_USER@$SERVER_HOST:/opt/oh/ext-lib/
+    - scp target/jrulexpr-*-rulegen.jar $SERVER_USER@$SERVER_HOST:/opt/oh/rules-jar/

@@ -26,6 +26,8 @@ public class JrxItem {
 
     private JRuleEvent lastTriggeredBy;
 
+    private Map<String, Optional<Object>> jrxvCache;
+
     protected JrxItem(JRuleItem item) {
         this.item = item;
     }
@@ -158,7 +160,9 @@ public class JrxItem {
     public Set<JrxItem> getTriggeringItems() {
         Set<JrxItem> items = new HashSet<>(ExpressionFactory.createJrxExpression(this).getReferencedItems(true));
         items.addAll(ExpressionFactory.createJrxpExpression(this).getReferencedItems(true));
-        items.remove(this); // item cannot trigger JrxRule itself
+        if (!forceSelfTrigger()) {
+            items.remove(this); // item does not trigger JrxRule itself
+        }
         return items;
     }
 
@@ -197,6 +201,23 @@ public class JrxItem {
     public Optional<String> getJrxVar(String name) {
         return Optional.ofNullable(getJrxVars().get(name));
     }     
+
+    public void clearJrxVarCache() {
+       if (jrxvCache != null) jrxvCache.clear();
+    }
+
+    public void putJrxVarValueInCache(String name, Object value) {
+        if (jrxvCache == null) {
+            jrxvCache = new HashMap<>(5);
+        }
+        jrxvCache.put(name, Optional.ofNullable(value));
+    }
+
+    public Optional<Object> getJrxVarCachedValue(String name) {
+        // null return means not in cache
+        // Optional.empty means null value cached
+        return jrxvCache == null ? null : jrxvCache.get(name);
+    }
 
     public String getRuleClassName() {
         String clz = getJrxcValue("ruleClass");
@@ -280,6 +301,11 @@ public class JrxItem {
     public boolean skipJrxf() {
         String skipJrxf = getJrxcValue("skipJrxf");
         return "".equals(skipJrxf) || "true".equalsIgnoreCase(skipJrxf);
+    }
+
+    protected boolean forceSelfTrigger() {
+        String forceSelfTrigger = getJrxcValue("forceSelfTrigger");
+        return "".equals(forceSelfTrigger) || "true".equalsIgnoreCase(forceSelfTrigger);
     }
 
     protected boolean forceCmd() {

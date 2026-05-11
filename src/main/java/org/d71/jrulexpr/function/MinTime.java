@@ -160,6 +160,7 @@ public class MinTime extends AbstractFunction implements JrxFunction<Boolean> {
             boolean clear = false;
 
             try {
+                item.clearJrxVarCache();
                 Boolean jrx = item.evaluateJrx();
                 if (jrx) {
                     // jrxp met and jrx action condition still applies
