@@ -7,7 +7,7 @@
 
   <groupId>org.d71</groupId>
   <artifactId>jrulexpr</artifactId>
-  <version>0.9.1-SNAPSHOT</version>
+  <version>0.9.1</version>
 
   <name>jrulexpr</name>
 
