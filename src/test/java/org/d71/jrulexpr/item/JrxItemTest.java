@@ -205,13 +205,22 @@ class JrxItemTest {
         JRuleItem item = mock(JRuleItem.class);
         JRuleItemMetadata meta = mock(JRuleItemMetadata.class);
         when(meta.getValue()).thenReturn("val");
+
+        JRuleItemMetadata meta2 = mock(JRuleItemMetadata.class);
+        when(meta2.getValue()).thenReturn("jrxv-var1");
+
         Map<String, JRuleItemMetadata> metadata = new HashMap<>();
         metadata.put("jrxv-var1", meta);
+        metadata.put("jrxv-var2", meta2);
         when(item.getMetadata()).thenReturn(metadata);
 
         JrxItem ji = new JrxItem(item);
         Map<String, String> vars = ji.getJrxVars();
+
         assertTrue(vars.containsKey("jrxv_var1"));
         assertEquals("val", vars.get("jrxv_var1"));
+
+        assertTrue(vars.containsKey("jrxv_var2"));
+        assertEquals("jrxv_var1", vars.get("jrxv_var2"));
     }
 }

@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,12 +41,6 @@ public abstract class AbstractJRuleXprExpression<T> implements JRuleXprExpressio
         return item;
     }
 
-    @Override
-    public Optional<String> getDefinition() {
-        Optional<String> definition = JRuleXprExpression.super.getDefinition();
-        return definition.isPresent() ? Optional.of(JrxItem.sanitizeJrxvs(definition.get())) : definition;
-    }
-   
     @Override
     public final T evaluate() {
         T value;
