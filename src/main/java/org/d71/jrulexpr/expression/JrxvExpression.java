@@ -32,6 +32,11 @@ public class JrxvExpression extends AbstractJRuleXprExpression<Object> {
     }
 
     @Override
+    protected boolean isDefinitionPresent() {
+        return getDefinition().isPresent();
+    }
+
+    @Override
     protected Object defaultValue() {
         throw new UnsupportedOperationException("jrxv expressions must have a definition!");
     }

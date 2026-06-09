@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,16 +43,26 @@ public abstract class AbstractJRuleXprExpression<T> implements JRuleXprExpressio
     }
 
     @Override
+    public Optional<String> getDefinition() {
+        Optional<String> definition = JRuleXprExpression.super.getDefinition();
+        return definition.map(JrxItem::sanitizeJrxvs);
+    }
+   
+    @Override
     public final T evaluate() {
         T value;
-        if (getDefinition().isPresent()) {
+        if (isDefinitionPresent()) {
             value = evaluatedValue();
         } else {
             value = defaultValue();
         }
         return value;
     }
-    
+
+    protected boolean isDefinitionPresent() {
+        return JRuleXprExpression.super.getDefinition().isPresent();
+    }
+
     protected T evaluatedValue() {
         Object valueObj = evaluateExpression();
         LOGGER.debug("{}.{} evaluates to raw value {} ({})", new Object[] { getContainerItem().getName(), getJrxType().getToken(), valueObj, valueObj == null ? "null" : valueObj.getClass().getSimpleName() });
@@ -116,7 +127,7 @@ public abstract class AbstractJRuleXprExpression<T> implements JRuleXprExpressio
     @Override
     public Set<JrxItem> getReferencedItems(boolean includeJrxvItems) {
         Set<JrxItem> items;
-        if (getDefinition().isPresent()) {
+        if (isDefinitionPresent()) {
             Set<JrxItem> itemsFromExpression = getReferencedItemsFromExpression();
             if (includeJrxvItems) {
                 items = new HashSet<>();
@@ -150,7 +161,7 @@ public abstract class AbstractJRuleXprExpression<T> implements JRuleXprExpressio
     @Override
     public Set<JrxFunction<?>> getReferencedFunctions(boolean includeJrxvFunctions) {
         Set<JrxFunction<?>> functions;
-        if (getDefinition().isPresent()) {
+        if (isDefinitionPresent()) {
             Set<JrxFunction<?>> functionsFromExpression = getReferencedFunctionsFromExpression();
             if (includeJrxvFunctions) {
                 functions = new HashSet<>();
@@ -211,7 +222,7 @@ public abstract class AbstractJRuleXprExpression<T> implements JRuleXprExpressio
     }
 
     private Set<String> getReferencedVars() {
-        return getDefinition().isEmpty() ? Collections.emptySet() : getReferencedVarsFromExpression();
+        return isDefinitionPresent() ? getReferencedVarsFromExpression() : Collections.emptySet();
     }
 
     private Set<String> getReferencedVarsFromExpression() {

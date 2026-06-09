@@ -6,9 +6,13 @@ import static org.mockito.Mockito.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
+import org.d71.jrulexpr.function.Hour;
+import org.d71.jrulexpr.function.JrxFunction;
 import org.d71.jrulexpr.item.JrxItem;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.openhab.automation.jrule.items.JRuleItem;
 import org.openhab.automation.jrule.items.metadata.JRuleItemMetadata;
 
@@ -67,5 +71,31 @@ class JrxvExpressionTest {
         assertEquals(first.toString(), second.toString());
 
         verify(spyJi, atLeastOnce()).putJrxVarValueInCache(eq("jrxv_var1"), any());
+    }
+
+    @Test
+    void evaluteFuncInVar() {
+        JRuleItem ri = mock(JRuleItem.class);
+        Map<String, JRuleItemMetadata> metadata = new HashMap<>();
+        when(ri.getMetadata()).thenReturn(metadata);
+
+        JRuleItemMetadata funcMeta= mock(JRuleItemMetadata.class);
+        when(funcMeta.getValue()).thenReturn("HOUR()");
+        metadata.put("jrx-H", funcMeta);
+        JRuleItemMetadata meta = mock(JRuleItemMetadata.class);
+        when(meta.getValue()).thenReturn("jrx-H <> 24");
+        metadata.put("jrx-FinV", meta);
+        meta = mock(JRuleItemMetadata.class);
+        when(meta.getValue()).thenReturn("jrx-FinV");
+        metadata.put("jrx", meta);
+
+        JrxItem jrItm = new JrxItemT(ri);
+        JrxExpression expr = new JrxExpression(jrItm);
+
+        String def = expr.getDefinition().orElse(null);
+        assertNotNull(def);
+
+        assertTrue(expr.evaluate());
+        Mockito.verify(funcMeta, Mockito.atLeastOnce()).getValue();
     }
 }
