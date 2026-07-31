@@ -162,6 +162,8 @@ public class JrxItem {
         items.addAll(ExpressionFactory.createJrxpExpression(this).getReferencedItems(true));
         if (!forceSelfTrigger()) {
             items.remove(this); // item does not trigger JrxRule itself
+        } else {
+            items.add(this);
         }
         return items;
     }
