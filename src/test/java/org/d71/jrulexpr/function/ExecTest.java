@@ -3,15 +3,20 @@ package org.d71.jrulexpr.function;
 import com.ezylang.evalex.data.EvaluationValue;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ExecTest {
     private static final String OUTPUT = "stdout & stderr of process";
@@ -21,13 +26,29 @@ public class ExecTest {
     @Mock
     private Process mockProcess;
     @Mock
+    private ProcessHandle mockProcessHandle;
+    @Mock
     private BufferedReader mockReader;
     private AutoCloseable closeable;
+    private Exec exec;
 
     @BeforeEach
     void setup() throws Exception {
         closeable = MockitoAnnotations.openMocks(this);
         Mockito.when(mockProcessBuilder.start()).thenReturn(mockProcess);
+        Mockito.when(mockProcess.toHandle()).thenReturn(mockProcessHandle);
+        Mockito.when(mockProcessHandle.descendants()).thenReturn(Stream.empty());
+        Mockito.when(mockProcess.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        exec = new Exec() {
+            @Override
+            protected ProcessBuilder createProcessBuilder(boolean inShell, String... cmdAndArgs) {
+                return mockProcessBuilder;
+            }
+            @Override
+            protected BufferedReader createBufferedReader(InputStream inputStream) {
+                return mockReader;
+            }
+        };
     }
 
     @AfterEach
@@ -37,45 +58,64 @@ public class ExecTest {
 
     @Test
     void getValue_NoError() throws Exception {
-        Exec exec = new Exec();
-
-        exec.processBuilder = mockProcessBuilder;
-        exec.bufferedReader = mockReader;
         Mockito.when(mockReader.readLine()).thenReturn(OUTPUT).thenReturn(null);
-        Mockito.when(mockProcess.waitFor()).thenReturn(0);
+        Mockito.when(mockProcess.waitFor(Mockito.anyLong(), Mockito.any())).thenReturn(true);
+        Mockito.when(mockProcess.exitValue()).thenReturn(0);
 
         List<EvaluationValue> result = exec.getValue("some command");
 
         assertEquals(0, result.get(0).getNumberValue().intValue());
-        assertEquals(OUTPUT, result.get(1).getStringValue());
+        assertEquals(OUTPUT + "\n", result.get(1).getStringValue());
     }
 
     @Test
     void getValue_Error() throws Exception {
-        Exec exec = new Exec();
-
-        exec.processBuilder = mockProcessBuilder;
-        exec.bufferedReader = mockReader;
         Mockito.when(mockReader.readLine()).thenReturn("error").thenReturn(null);
-        Mockito.when(mockProcess.waitFor()).thenReturn(1);
+        Mockito.when(mockProcess.waitFor(Mockito.anyLong(), Mockito.any())).thenReturn(true);
+        Mockito.when(mockProcess.exitValue()).thenReturn(1);
 
         List<EvaluationValue> result = exec.getValue("some command");
 
-        assertEquals(1, result.get(0).getNumberValue().intValue());
-        assertEquals("error", result.get(1).getStringValue());
+        assertEquals(Exec.CODE_ERROR, result.get(0).getNumberValue().intValue());
+        assertEquals("error\n", result.get(1).getStringValue());
     }
 
     @Test
     void getValue_Exception() throws Exception {
-        Exec exec = new Exec();
-
-        exec.processBuilder = mockProcessBuilder;
-        exec.bufferedReader = mockReader;
-        Mockito.when(mockProcess.waitFor()).thenThrow(new InterruptedException("error!"));
+        Mockito.when(mockProcess.waitFor(Mockito.anyLong(), Mockito.any())).thenThrow(new RuntimeException("rte"));
 
         List<EvaluationValue> result = exec.getValue("some command");
 
-        assertEquals(9, result.get(0).getNumberValue().intValue());
-        assertEquals("error!", result.get(1).getStringValue());
+        assertEquals(Exec.CODE_ERROR, result.get(0).getNumberValue().intValue());
+        assertEquals("rte", result.get(1).getStringValue());
+    }
+
+    @Test
+    void getValue_Timeout() throws Exception {
+        Mockito.when(mockProcess.waitFor(Mockito.anyLong(), Mockito.any())).thenReturn(false).thenReturn(true);
+
+        List<EvaluationValue> result = exec.getValue("some command");
+
+        assertEquals(Exec.CODE_TIMEOUT, result.get(0).getNumberValue().intValue());
+    }
+
+    @Test
+    @Disabled
+    void getValue_ls() {
+        Exec exec = new Exec();
+        List<EvaluationValue> result = exec.getValue("ls -l /");
+
+        assertEquals(0, result.get(0).getNumberValue().intValue());
+        assertTrue((result.get(1).getStringValue()).contains("bin"));
+    }
+
+    @Test
+    @Disabled
+    void getValue_ls_NoShell() {
+        Exec exec = new Exec();
+        List<EvaluationValue> result = exec.getValue("ls", "-l", "/");
+
+        assertEquals(0, result.get(0).getNumberValue().intValue());
+        assertTrue((result.get(1).getStringValue()).contains("bin"));
     }
 }
