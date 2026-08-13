@@ -111,7 +111,7 @@ public class JrxItem {
 
     public Optional<String> getMetadataValue(String meta) {
         JRuleItemMetadata mdat = getMetadataEntry(meta);
-        return Optional.ofNullable(mdat == null ? null : (String) mdat.getValue());
+        return Optional.ofNullable(mdat == null ? null : sanitizeJrxvs(mdat.getValue()));
     }
 
     public Map<String, Object> getMetadataConfig(String meta) {
@@ -162,6 +162,8 @@ public class JrxItem {
         items.addAll(ExpressionFactory.createJrxpExpression(this).getReferencedItems(true));
         if (!forceSelfTrigger()) {
             items.remove(this); // item does not trigger JrxRule itself
+        } else {
+            items.add(this);
         }
         return items;
     }
@@ -199,7 +201,7 @@ public class JrxItem {
     } 
 
     public Optional<String> getJrxVar(String name) {
-        return Optional.ofNullable(getJrxVars().get(name));
+        return Optional.ofNullable(getJrxVars().get(name)).map(JrxItem::sanitizeJrxvs);
     }     
 
     public void clearJrxVarCache() {

@@ -2,6 +2,7 @@ package org.d71.jrulexpr.expression.eval;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 import org.openhab.automation.jrule.rules.value.JRuleDateTimeValue;
 import org.openhab.automation.jrule.rules.value.JRuleDecimalValue;
@@ -47,35 +48,62 @@ public class JRuleValueHandler {
         JRuleValue rv;
         if (object == null) {
             rv = null;
-        } else if (object instanceof BigDecimal) {
-            if (CoreItemFactory.DIMMER.equals(itemType)) {
-                rv = new JRulePercentValue(((BigDecimal) object).intValue());
-            } else if (CoreItemFactory.NUMBER.equals(itemType)) {
-                rv = new JRuleDecimalValue((BigDecimal) object);
-            } else if (CoreItemFactory.DATETIME.equals(itemType)) {
-                rv = new JRuleDateTimeValue(new Date(((BigDecimal) object).longValueExact()));
-            } else if (CoreItemFactory.ROLLERSHUTTER.equals(itemType))
-                rv = new JRulePercentValue(((BigDecimal) object).intValue());
-            else {
-                throw createIllegalStateException(object, itemType);
-            }
-        } else if (object instanceof String) {
-            if (CoreItemFactory.SWITCH.equals(itemType)) {
-                rv = JRuleOnOffValue.valueOf((String) object);
-            } else if (CoreItemFactory.STRING.equals(itemType)) {
-                rv = new JRuleStringValue((String) object);
-            } else if (CoreItemFactory.COLOR.equals(itemType)) {
-                rv = new JRuleHsbValue((String) object);
-            } else if (CoreItemFactory.NUMBER.equals(itemType)) {
-                rv = new JRuleDecimalValue(new BigDecimal((String) object));
-            } else if (CoreItemFactory.PLAYER.equals(itemType)) {
-                rv = JRulePlayPauseValue.getValueFromString((String) object);
-            }
-            else {
-                throw createIllegalStateException(object, itemType);
-            }
+        } else if (object instanceof BigDecimal bdObj) {
+            rv = convertBigDecimalToJRuleValue(bdObj, itemType);
+        } else if (object instanceof String strObj) {
+            rv = convertStringToJRuleValue(strObj, itemType);
+        } else if (object instanceof List<?> listObj) {
+            rv = convertListToJRuleValue(listObj, itemType);
         } else {
             throw createIllegalStateException(object, itemType);
+        }
+        return rv;
+    }
+
+    private static JRuleValue convertListToJRuleValue(List<?> listObj, String itemType) {
+        JRuleValue rv;
+        if (CoreItemFactory.STRING.equals(itemType)) {
+            rv = new JRuleStringValue(String.valueOf(listObj.size()));
+        } else if (CoreItemFactory.NUMBER.equals(itemType)) {
+            rv = new JRuleDecimalValue(new BigDecimal(listObj.size()));
+        } else {
+            throw createIllegalStateException(listObj, itemType);
+        }
+        return rv;
+    }
+
+    private static JRuleValue convertStringToJRuleValue(String strObj, String itemType) {
+        JRuleValue rv;
+        if (CoreItemFactory.SWITCH.equals(itemType)) {
+            rv = JRuleOnOffValue.valueOf(strObj);
+        } else if (CoreItemFactory.STRING.equals(itemType)) {
+            rv = new JRuleStringValue(strObj);
+        } else if (CoreItemFactory.COLOR.equals(itemType)) {
+            rv = new JRuleHsbValue(strObj);
+        } else if (CoreItemFactory.NUMBER.equals(itemType)) {
+            rv = new JRuleDecimalValue(new BigDecimal(strObj));
+        } else if (CoreItemFactory.PLAYER.equals(itemType)) {
+            rv = JRulePlayPauseValue.getValueFromString(strObj);
+        } else {
+            throw createIllegalStateException(strObj, itemType);
+        }
+        return rv;
+    }
+
+    private static JRuleValue convertBigDecimalToJRuleValue(BigDecimal bdObj, String itemType) {
+        JRuleValue rv;
+        if (CoreItemFactory.DIMMER.equals(itemType)) {
+            rv = new JRulePercentValue(bdObj.intValue());
+        } else if (CoreItemFactory.NUMBER.equals(itemType)) {
+            rv = new JRuleDecimalValue(bdObj);
+        } else if (CoreItemFactory.DATETIME.equals(itemType)) {
+            rv = new JRuleDateTimeValue(new Date(bdObj.longValueExact()));
+        } else if (CoreItemFactory.ROLLERSHUTTER.equals(itemType)) {
+            rv = new JRulePercentValue(bdObj.intValue());
+        } else if (CoreItemFactory.STRING.equals(itemType))
+            rv = new JRuleStringValue(bdObj.toString());
+        else {
+            throw createIllegalStateException(bdObj, itemType);
         }
         return rv;
     }

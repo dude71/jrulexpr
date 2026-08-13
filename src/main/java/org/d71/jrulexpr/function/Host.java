@@ -11,7 +11,7 @@ import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 
 @FunctionParameter(name = "hostOrIp")
-public class Host extends AbstractFunction implements JrxFunction<Boolean> {
+public class Host extends AbstractExecFunction implements JrxFunction<Boolean> {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     @Override
@@ -41,16 +41,8 @@ public class Host extends AbstractFunction implements JrxFunction<Boolean> {
     }
 
     private boolean hostReachable(String hostOrIp) {
-        boolean rv = false;
-        try {
-            Process proc = java.lang.Runtime.getRuntime().exec("ping -c 1 " + hostOrIp);
-            int i = proc.waitFor();
-            rv = (i == 0);
-            LOGGER.debug("Host " + hostOrIp + (rv ? "" : " NOT") + " reachable (i=" + i + ")");
-        } catch (Exception e) {
-            LOGGER.debug(e.getMessage());
-            rv = false;
-        }
-        return rv;
+        int exitCode = (int)exec(false, false, "ping", "-c", "1", hostOrIp)[0];
+        LOGGER.debug("Host {} {} reachable (exitCode={})", hostOrIp, exitCode == 0 ? "" : "NOT", exitCode);
+        return exitCode == 0;
     }
 }

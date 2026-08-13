@@ -12,8 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 
 @FunctionParameter(name = "item1")
-@FunctionParameter(name = "item2")
-@FunctionParameter(name = "item3", isVarArg = true)
+@FunctionParameter(name = "item2", isVarArg = true)
 public class NotNull extends AbstractFunction implements JrxFunction<Boolean> {
     private static final Logger LOGGER = LoggerFactory.getLogger(NotNull.class);
 

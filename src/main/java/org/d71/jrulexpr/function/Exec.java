@@ -1,6 +1,15 @@
 package org.d71.jrulexpr.function;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +22,7 @@ import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 
 @FunctionParameter(name = "cmd")
-public class Exec extends AbstractFunction implements JrxFunction<String> {
+public class Exec extends AbstractExecFunction implements JrxFunction<List<EvaluationValue>> {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     @Override
@@ -24,29 +33,21 @@ public class Exec extends AbstractFunction implements JrxFunction<String> {
     @Override
     public EvaluationValue evaluate(Expression expression, Token functionToken, EvaluationValue... parameterValues)
             throws EvaluationException {
-        return EvaluationValue.stringValue(getValue(parameterValues[0].getStringValue()));
+        Object[] parameters = new String[parameterValues.length];
+        for (int i = 0; i < parameterValues.length; i++) {
+            parameters[i] = parameterValues[i].getStringValue();
+        }
+        return EvaluationValue.arrayValue(getValue(parameters));
     }
 
     @Override
-    public String getValue(Object... parameters) {
-        return execReturnStdout((String) parameters[0]);
-    }
-
-    private String execReturnStdout(String cmd) {
-        String rv = null;
-        try {
-            Process proc = java.lang.Runtime.getRuntime().exec(new String[] {"sh", "-c", cmd});
-            int i = proc.waitFor();
-            if (i == 0) {
-                rv = new String(proc.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                rv = rv.replaceFirst("\\n", "");
-                LOGGER.debug("rv=" + rv);
-            } else
-                LOGGER.warn("cmd " + cmd + ", return code " + i);
-        } catch (Exception e) {
-            LOGGER.warn(e.getMessage());
-        }
+    public List<EvaluationValue> getValue(Object... parameters) {
+        boolean inShell = parameters.length == 1;
+        String[] strParams = Arrays.copyOf(parameters, parameters.length, String[].class);
+        Object[] result = exec(inShell, true, strParams);
+        List<EvaluationValue> rv = new ArrayList<>(2);
+        rv.add(EvaluationValue.numberValue(BigDecimal.valueOf((int)result[0])));
+        rv.add(EvaluationValue.stringValue((String)result[1]));
         return rv;
     }
-
 }
