@@ -52,7 +52,6 @@ class JrxRuleTest {
 
         when(mockRegistry.getItem("foo")).thenReturn(mockItem);
         when(mockItem.getRuleMethodName()).thenReturn("methodName");
-        when(mockItem.evaluateNewState()).thenReturn(mockValue);
 
         try (MockedStatic<JrxItemRegistry> registryMock = mockStatic(JrxItemRegistry.class)) {
             registryMock.when(JrxItemRegistry::getInstance).thenReturn(mockRegistry);
@@ -61,8 +60,7 @@ class JrxRuleTest {
 
             verify(mockItem).setLastTriggeredBy(event);
             verify(mockItem).getRuleMethodName();
-            verify(mockItem).evaluateNewState();
-            verify(mockItem).send(mockValue);
+            verify(mockItem).evaluateNewStateAndSend();
         }
     }
 
@@ -76,7 +74,7 @@ class JrxRuleTest {
 
         when(mockRegistry.getItem("foo")).thenReturn(mockItem);
         when(mockItem.getRuleMethodName()).thenReturn("m");
-        when(mockItem.evaluateNewState()).thenThrow(new RuntimeException("oops"));
+        doThrow(new RuntimeException("oops")).when(mockItem).evaluateNewStateAndSend();
 
         try (MockedStatic<JrxItemRegistry> registryMock = mockStatic(JrxItemRegistry.class)) {
             registryMock.when(JrxItemRegistry::getInstance).thenReturn(mockRegistry);
@@ -85,7 +83,7 @@ class JrxRuleTest {
             assertDoesNotThrow(() -> rule.execRule("foo", event));
 
             verify(mockItem).setLastTriggeredBy(event);
-            verify(mockItem).evaluateNewState();
+            verify(mockItem).evaluateNewStateAndSend();
             verify(mockItem, never()).send(any());
         }
     }

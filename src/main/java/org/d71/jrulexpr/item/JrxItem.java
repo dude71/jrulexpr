@@ -191,21 +191,21 @@ public class JrxItem {
     public Map<String, String> getJrxVars() {
         Map<String, JRuleItemMetadata> metadataEntries = getMetadataEntries("jrx[v]?[_|-]\\S+");
         return metadataEntries.entrySet().stream()
-            .collect(Collectors.toMap(e -> sanitizeJrxvs(e.getKey()), e -> sanitizeJrxvs(e.getValue().getValue())));
+                .collect(Collectors.toMap(e -> sanitizeJrxvs(e.getKey()), e -> sanitizeJrxvs(e.getValue().getValue())));
     }
 
     public static String sanitizeJrxvs(String def) {
         // Replace dashes with underscores in jrx(v)- definitions to ensure valid variable names in expressions.
         // "-" are interpreted as subtraction operators in expressions, which can lead to parsing errors if not handled.
         return def.replaceAll("(?<=\\bjrxv?[\\w-]*)-", "_");
-    } 
+    }
 
     public Optional<String> getJrxVar(String name) {
         return Optional.ofNullable(getJrxVars().get(name)).map(JrxItem::sanitizeJrxvs);
-    }     
+    }
 
     public void clearJrxVarCache() {
-       if (jrxvCache != null) jrxvCache.clear();
+        if (jrxvCache != null) jrxvCache.clear();
     }
 
     public void putJrxVarValueInCache(String name, Object value) {
@@ -228,37 +228,36 @@ public class JrxItem {
 
     public Boolean evaluateJrxp() {
         Boolean jrxpEval = ExpressionFactory.createJrxpExpression(this).evaluate();
-        LOGGER.debug("{}.jrxp: {} -> {}", new Object[] { getName(), getJrxp().orElse("<undef>"), jrxpEval });
+        LOGGER.debug("{}.jrxp: {} -> {}", new Object[]{getName(), getJrxp().orElse("<undef>"), jrxpEval});
         return jrxpEval;
     }
 
     public Boolean evaluateJrx() {
         Boolean value = ExpressionFactory.createJrxExpression(this).evaluate();
-        LOGGER.debug("{}.jrx: {} -> {}", new Object[] { getName(), getJrx().orElse("<undef>"), value });
+        LOGGER.debug("{}.jrx: {} -> {}", new Object[]{getName(), getJrx().orElse("<undef>"), value});
         return value;
     }
 
     public JRuleValue evaluateJrxf() {
         JRuleValue value = ExpressionFactory.createJrxfExpression(this).evaluate();
-        LOGGER.debug("{}.jrxf: {} -> {}", new Object[] { getName(), getJrxf().orElse("<undef>"), value });
+        LOGGER.debug("{}.jrxf: {} -> {}", new Object[]{getName(), getJrxf().orElse("<undef>"), value});
         return value;
     }
 
     public JRuleValue evaluateJrxt() {
         JRuleValue value = ExpressionFactory.createJrxtExpression(this).evaluate();
-        LOGGER.debug("{}.jrxt: {} -> {}", new Object[] { getName(), getJrxt().orElse("<undef>"), value });
+        LOGGER.debug("{}.jrxt: {} -> {}", new Object[]{getName(), getJrxt().orElse("<undef>"), value});
         return value;
     }
 
-    public JRuleValue evaluateNewState() {
-        JRuleValue value;
-
+    public void evaluateNewStateAndSend() {
         if (evaluateJrxp()) {
-            value = getJrx() == null || evaluateJrx() ? evaluateJrxt() : (skipJrxf() ? item.getState() : evaluateJrxf());
-        } else {
-            value = item.getState();
+            if (evaluateJrx()) {
+                send(evaluateJrxt());
+            } else if (!skipJrxf()) {
+                send(evaluateJrxf());
+            }
         }
-        return value;
     }
 
     public JRuleValue getState() {
